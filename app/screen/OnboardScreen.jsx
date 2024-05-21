@@ -182,7 +182,7 @@ const styles = StyleSheet.create({
     paddingVertical: 13,
     right: 35,
     bottom: 100,
-    borderRadius: 20,
+    borderRadius: 25,
   },
   alreadyHaveAccount: {
     color: '#FFFFFF',
@@ -192,12 +192,12 @@ const styles = StyleSheet.create({
     bottom: 80,
   },
   logo: {
-    width: 200,
+    width: 100,
     height: 65,
     position: 'absolute',
     zIndex: 1,
     top: 70,
-    left: 110,
+    left: 165,
   },
 });
 
