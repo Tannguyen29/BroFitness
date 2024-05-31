@@ -7,7 +7,6 @@ import SignUp from "../(auth)/signUp"
 import MainPage from "../(tabs)/MainPage";
 import OnboardScreen from "../screen/OnboardScreen";
 
-
 const Stack = createNativeStackNavigator();
 
 const AppNavigation = () => {

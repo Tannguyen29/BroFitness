@@ -5,7 +5,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import logo from "../../assets/image/gymLogo.png";
 import FormField from "../../components/FormField";
 import CustomButton from "../../components/CustomButton";
-import { createUserWithEmailAndPassword } from "firebase/auth";
+import { createUserWithEmailAndPassword, sendEmailVerification } from "firebase/auth";
 import { auth } from '../../config/FirebaseConfig';
 
 const appleLogo = require('../../assets/image/apple.png');
@@ -20,8 +20,9 @@ const SignUp = ({ navigation }) => {
 
   const handleSignUp = async () => {
     try {
-      const register = await createUserWithEmailAndPassword(auth, email, password);
-      console.log(register);
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      await sendEmailVerification(userCredential.user);
+      alert("Verification email sent! Please check your inbox.");
       navigation.navigate("SignIn");
     } catch (error) {
       setError(error.message);
