@@ -21,7 +21,7 @@ const SignIn = ({ navigation }) => {
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       if (userCredential.user.emailVerified) {
-        navigation.navigate("MainPage");
+        navigation.navigate("BottomTabs");
       } else {
         setError("Please verify your email before signing in.");
       }
