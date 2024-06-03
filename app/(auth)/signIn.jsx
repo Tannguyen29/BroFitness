@@ -7,6 +7,7 @@ import FormField from "../../components/FormField";
 import CustomButton from "../../components/CustomButton";
 import {signInWithEmailAndPassword} from "firebase/auth";
 import { auth } from "../../config/FirebaseConfig";
+import { CheckBox } from '@rneui/themed';
 
 const appleLogo = require('../../assets/image/apple.png');
 const facebookLogo = require('../../assets/image/facebook.png');
@@ -58,8 +59,10 @@ const SignIn = ({ navigation }) => {
             onChangeText={(text) => setPassword(text)}
             secureTextEntry={true}
           />
-           <TouchableOpacity onPress={handleForgotPassword}>
-              <Text className="text-orange-500 mt-5 left-1/4">Forgot Password?</Text>
+          <TouchableOpacity onPress={() => navigation.navigate("EmailInput")} >
+            <Text className="text-orange-500 mt-5 left-1/4">
+              Forgot Password?
+            </Text>
           </TouchableOpacity>
           <View>
             <Text className="text-white mr-52 mt-2">Remember Me</Text>
@@ -77,13 +80,25 @@ const SignIn = ({ navigation }) => {
           </View>
           <View className="flex-row justify-around mt-6 w-4/5 mb-12">
             <TouchableOpacity className="border-2 border-white rounded-full px-8 py-2">
-              <Image source={facebookLogo} className="w-6 h-10" resizeMode="contain" />
+              <Image
+                source={facebookLogo}
+                className="w-6 h-10"
+                resizeMode="contain"
+              />
             </TouchableOpacity>
             <TouchableOpacity className="border-2 border-white rounded-full px-8 py-2">
-              <Image source={googleLogo} className="w-7 h-10" resizeMode="contain" />
+              <Image
+                source={googleLogo}
+                className="w-7 h-10"
+                resizeMode="contain"
+              />
             </TouchableOpacity>
             <TouchableOpacity className="border-2 border-white rounded-full px-8 py-2">
-              <Image source={appleLogo} className="w-7 h-10" resizeMode="contain" />
+              <Image
+                source={appleLogo}
+                className="w-7 h-10"
+                resizeMode="contain"
+              />
             </TouchableOpacity>
           </View>
           <TouchableOpacity
@@ -91,7 +106,7 @@ const SignIn = ({ navigation }) => {
             className="mt-4"
           >
             <Text className="text-gray-400">
-            Haven't join BroFitness?{" "}
+              Haven't join BroFitness?{" "}
               <Text className="text-orange-500">Sign up</Text>
             </Text>
           </TouchableOpacity>
