@@ -1,13 +1,11 @@
-import {Text, TextInput, View, ScrollView, Image,TouchableOpacity,} from "react-native";
+import { Text, View, ScrollView, Image, TouchableOpacity } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import React, { useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
+import axios from 'axios';
 import logo from "../../assets/image/gymLogo.png";
 import FormField from "../../components/FormField";
 import CustomButton from "../../components/CustomButton";
-import {signInWithEmailAndPassword} from "firebase/auth";
-import { auth } from "../../config/FirebaseConfig";
-import { CheckBox } from '@rneui/themed';
 
 const appleLogo = require('../../assets/image/apple.png');
 const facebookLogo = require('../../assets/image/facebook.png');
@@ -17,21 +15,16 @@ const SignIn = ({ navigation }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
+  const [rememberMe, setRememberMe] = useState(false);
 
   const handleSignIn = async () => {
     try {
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      if (userCredential.user.emailVerified) {
-        navigation.navigate("BottomTabs");
-      } else {
-        setError("Please verify your email before signing in.");
-      }
+      const response = await axios.post('http://192.168.1.36:5000/signin', { email, password });
+      const token = response.data.token;
+      navigation.navigate("BottomTabs");
     } catch (error) {
-      setError(error.message);
+      setError(error.response ? error.response.data : 'Error signing in');
     }
-  };
-
-  const handleForgotPassword = async () => {
   };
 
   return (
@@ -64,8 +57,13 @@ const SignIn = ({ navigation }) => {
               Forgot Password?
             </Text>
           </TouchableOpacity>
-          <View>
-            <Text className="text-white mr-52 mt-2">Remember Me</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', right: 100 }}>
+            <TouchableOpacity onPress={() => setRememberMe(!rememberMe)} style={{
+              height: 24, width: 24, borderRadius: 12, borderWidth: 2, borderColor: 'white', alignItems: 'center', justifyContent: 'center', marginRight: 10
+            }}>
+              {rememberMe && <View style={{ height: 12, width: 12, borderRadius: 6, backgroundColor: '#FD6300',}} />}
+            </TouchableOpacity>
+            <Text style={{ color: 'white' }}>Remember Me</Text>
           </View>
           <CustomButton
             title="Sign In"
@@ -79,21 +77,21 @@ const SignIn = ({ navigation }) => {
             <View className="flex-1 h-px bg-gray-600" />
           </View>
           <View className="flex-row justify-around mt-6 w-4/5 mb-12">
-            <TouchableOpacity className="border-2 border-white rounded-full px-8 py-2">
+            <TouchableOpacity className="border border-white rounded-full px-8 py-2">
               <Image
                 source={facebookLogo}
                 className="w-6 h-10"
                 resizeMode="contain"
               />
             </TouchableOpacity>
-            <TouchableOpacity className="border-2 border-white rounded-full px-8 py-2">
+            <TouchableOpacity className="border border-white rounded-full px-8 py-2">
               <Image
                 source={googleLogo}
                 className="w-7 h-10"
                 resizeMode="contain"
               />
             </TouchableOpacity>
-            <TouchableOpacity className="border-2 border-white rounded-full px-8 py-2">
+            <TouchableOpacity className="border border-white rounded-full px-8 py-2">
               <Image
                 source={appleLogo}
                 className="w-7 h-10"
@@ -106,12 +104,17 @@ const SignIn = ({ navigation }) => {
             className="mt-4"
           >
             <Text className="text-gray-400">
-              Haven't join BroFitness?{" "}
+              Haven't joined BroFitness?{" "}
               <Text className="text-orange-500">Sign up</Text>
             </Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
+      <StatusBar
+        backgroundColor="#161622"
+        style="light"
+        barStyle="light-content"
+      />
     </SafeAreaView>
   );
 };

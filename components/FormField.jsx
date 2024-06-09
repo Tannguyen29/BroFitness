@@ -9,7 +9,7 @@ const FormField = ({ title, value, onChangeText, ...props }) => {
         value={value}
         onChangeText={onChangeText}
         placeholderTextColor="#ffffff"
-        className="bg-neutral-700 text-white rounded-3xl px-4 py-3 mt-5"
+        className="bg-neutral-700 text-white rounded-2xl px-4 py-3 mt-5"
         {...props}
       />
     </View>

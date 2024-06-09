@@ -98,12 +98,16 @@ const OnboardScreen = () => {
           width: 8,
           height: 4,
           marginHorizontal: 3,
+          justifyContent: 'center',
+          left:5
         }}
         activeDotStyle={{
           backgroundColor: "#FF5F2C",
           width: 8,
           height: 4,
           marginHorizontal: 3,
+          justifyContent: 'center',
+          left:5
         }}
       />
       <StatusBar
@@ -140,6 +144,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     textAlign: 'center',
     marginTop: 300,
+    left: 10
   },
   highlightedWord: {
     color: '#FF5F2C',
@@ -151,18 +156,16 @@ const styles = StyleSheet.create({
     marginTop: 10,
     padding: 5,
     paddingLeft: 50,
-    paddingRight: 50
+    paddingRight: 50,
+    left: 5
   },
   nextBtnContainer: {
     backgroundColor: '#FF5F2C',
     position: 'fixed',
-    bottom: 20,
     width: 300,
-    alignSelf: 'center',
     alignItems: 'center',
-    justifyContent: 'center',
     paddingVertical: 13,
-    right: 35,
+    right: 38,
     bottom: 60,
     borderRadius: 20,
   },
@@ -174,7 +177,6 @@ const styles = StyleSheet.create({
   doneBtnContainer:{
     backgroundColor: '#FF5F2C',
     position: 'fixed',
-    bottom: 40,
     width: 300,
     alignSelf: 'center',
     alignItems: 'center',
@@ -197,7 +199,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     zIndex: 1,
     top: 70,
-    left: 165,
+    left: 175,
   },
 });
 
