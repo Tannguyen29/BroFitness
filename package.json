@@ -10,6 +10,8 @@
   },
   "dependencies": {
     "@expo-google-fonts/inter": "^0.2.3",
+    "@fortawesome/free-solid-svg-icons": "^6.5.2",
+    "@fortawesome/react-native-fontawesome": "^0.3.2",
     "@react-native-async-storage/async-storage": "^1.23.1",
     "@react-native-community/checkbox": "^0.5.17",
     "@react-navigation/bottom-tabs": "^6.5.20",
@@ -27,6 +29,7 @@
     "iconsax-react-native": "^0.0.8",
     "nativewind": "^2.0.11",
     "react": "18.2.0",
+    "react-icons": "^5.2.1",
     "react-native": "^0.74.2",
     "react-native-app-intro-slider": "^4.0.4",
     "react-native-onboarding-swiper": "^1.2.0",

@@ -19,7 +19,7 @@ const SignIn = ({ navigation }) => {
 
   const handleSignIn = async () => {
     try {
-      const response = await axios.post('http://192.168.1.36:5000/signin', { email, password });
+      const response = await axios.post('http://192.168.1.55:5000/signin', { email, password });
       const token = response.data.token;
       navigation.navigate("BottomTabs");
     } catch (error) {
