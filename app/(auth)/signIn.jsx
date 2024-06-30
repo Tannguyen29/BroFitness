@@ -1,11 +1,13 @@
 import { Text, View, ScrollView, Image, TouchableOpacity } from "react-native";
+import React, { useState, useEffect } from "react";
 import { StatusBar } from "expo-status-bar";
-import React, { useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import axios from 'axios';
 import logo from "../../assets/image/gymLogo.png";
 import FormField from "../../components/FormField";
 import CustomButton from "../../components/CustomButton";
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { saveUserInfo, getUserInfo } from "../../config/api";
 
 const appleLogo = require('../../assets/image/apple.png');
 const facebookLogo = require('../../assets/image/facebook.png');
@@ -17,10 +19,70 @@ const SignIn = ({ navigation }) => {
   const [error, setError] = useState(null);
   const [rememberMe, setRememberMe] = useState(false);
 
+  useEffect(() => {
+    const checkLoginStatus = async () => {
+      const { token, name } = await getUserInfo();
+      if (token) {
+        navigation.navigate("BottomTabs");
+      }
+    };
+
+    const loadRememberMeState = async () => {
+      try {
+        const savedRememberMe = await AsyncStorage.getItem('rememberMe');
+        if (savedRememberMe !== null) {
+          setRememberMe(savedRememberMe === 'true');
+        }
+      } catch (error) {
+        console.error('Error loading remember me state:', error);
+      }
+    };
+
+    checkLoginStatus();
+    loadRememberMeState();
+  }, []);
+
+  useEffect(() => {
+    const loadSavedCredentials = async () => {
+      if (rememberMe) {
+        try {
+          const savedEmail = await AsyncStorage.getItem('savedEmail');
+          const savedPassword = await AsyncStorage.getItem('savedPassword');
+          if (savedEmail) setEmail(savedEmail);
+          if (savedPassword) setPassword(savedPassword);
+        } catch (error) {
+          console.error('Error loading saved credentials:', error);
+        }
+      }
+    };
+
+    loadSavedCredentials();
+  }, [rememberMe]);
+
+  const handleRememberMe = async (value) => {
+    setRememberMe(value);
+    try {
+      await AsyncStorage.setItem('rememberMe', value.toString());
+    } catch (error) {
+      console.error('Error saving remember me state:', error);
+    }
+  };
+
   const handleSignIn = async () => {
     try {
       const response = await axios.post('http://192.168.1.55:5000/signin', { email, password });
-      const token = response.data.token;
+      const { token, name } = response.data;
+      
+      await saveUserInfo(token, name || email);
+      
+      if (rememberMe) {
+        await AsyncStorage.setItem('savedEmail', email);
+        await AsyncStorage.setItem('savedPassword', password);
+      } else {
+        await AsyncStorage.removeItem('savedEmail');
+        await AsyncStorage.removeItem('savedPassword');
+      }
+  
       navigation.navigate("BottomTabs");
     } catch (error) {
       setError(error.response ? error.response.data : 'Error signing in');
@@ -52,18 +114,39 @@ const SignIn = ({ navigation }) => {
             onChangeText={(text) => setPassword(text)}
             secureTextEntry={true}
           />
-          <TouchableOpacity onPress={() => navigation.navigate("EmailInput")} >
+          <TouchableOpacity onPress={() => navigation.navigate("EmailInput")}>
             <Text className="text-orange-500 mt-5 left-1/4">
               Forgot Password?
             </Text>
           </TouchableOpacity>
-          <View style={{ flexDirection: 'row', alignItems: 'center', right: 100 }}>
-            <TouchableOpacity onPress={() => setRememberMe(!rememberMe)} style={{
-              height: 24, width: 24, borderRadius: 12, borderWidth: 2, borderColor: 'white', alignItems: 'center', justifyContent: 'center', marginRight: 10
-            }}>
-              {rememberMe && <View style={{ height: 12, width: 12, borderRadius: 6, backgroundColor: '#FD6300',}} />}
+          <View
+            style={{ flexDirection: "row", alignItems: "center", right: 100 }}
+          >
+            <TouchableOpacity
+              onPress={() => handleRememberMe(!rememberMe)}
+              style={{
+                height: 24,
+                width: 24,
+                borderRadius: 12,
+                borderWidth: 2,
+                borderColor: "white",
+                alignItems: "center",
+                justifyContent: "center",
+                marginRight: 10,
+              }}
+            >
+              {rememberMe && (
+                <View
+                  style={{
+                    height: 12,
+                    width: 12,
+                    borderRadius: 6,
+                    backgroundColor: "#FD6300",
+                  }}
+                />
+              )}
             </TouchableOpacity>
-            <Text style={{ color: 'white' }}>Remember Me</Text>
+            <Text style={{ color: "white" }}>Remember Me</Text>
           </View>
           <CustomButton
             title="Sign In"

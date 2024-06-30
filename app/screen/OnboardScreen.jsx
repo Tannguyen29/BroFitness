@@ -1,17 +1,38 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, StyleSheet, Dimensions, Text, ImageBackground, Image } from 'react-native';
 import AppIntroSlider from 'react-native-app-intro-slider';
 import { useNavigation } from '@react-navigation/native';
 import { StatusBar } from "expo-status-bar";
 import Logo from "../../assets/image/logo4.png"
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const { width } = Dimensions.get('window');
 
 const OnboardScreen = () => {
   const navigation = useNavigation();
 
-  const handleDone = () => {
-    navigation.replace('SignUp');
+  useEffect(() => {
+    checkOnboardingStatus();
+  }, []);
+
+  const checkOnboardingStatus = async () => {
+    try {
+      const value = await AsyncStorage.getItem('onboardingCompleted');
+      if (value === 'true') {
+        navigation.replace('SignIn');
+      }
+    } catch (error) {
+      console.error('Error checking onboarding status:', error);
+    }
+  };
+
+  const handleDone = async () => {
+    try {
+      await AsyncStorage.setItem('onboardingCompleted', 'true');
+      navigation.replace('SignUp');
+    } catch (error) {
+      console.error('Error saving onboarding status:', error);
+    }
   };
 
   const slides = [

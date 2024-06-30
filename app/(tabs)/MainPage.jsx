@@ -3,25 +3,34 @@ import { View, Text, SafeAreaView, ScrollView, StyleSheet, FlatList, TouchableOp
 import { Avatar } from "@rneui/themed";
 import { Notification } from "iconsax-react-native";
 import { auth } from "../../config/FirebaseConfig";
+import AIW from "../../assets/image/slide4.jpg"
+import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
+import { faArrowUpRightFromSquare } from "@fortawesome/free-solid-svg-icons"
+import { getUserInfo } from '../../config/api'
 
 const { width: screenWidth } = Dimensions.get('window');
-const itemWidth = screenWidth * 0.95; // Increase the width to make the plan items wider
+const itemWidth = screenWidth * 0.95;
 const itemHeight = 250; 
 
 const MainPage = () => {
   const [userName, setUserName] = useState('');
   const [weekDays, setWeekDays] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [currentDay, setCurrentDay] = useState(new Date().getDate());
 
   useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged((user) => {
-      if (user) {
-        setUserName(user.displayName || 'User');
+    const loadUserInfo = async () => {
+      setIsLoading(true);
+      const { name } = await getUserInfo();
+      if (name) {
+        setUserName(name);
       } else {
         setUserName('User');
       }
-    });
+      setIsLoading(false);
+    };
 
+    loadUserInfo();
     updateWeekDays();
     const timer = setInterval(() => {
       updateWeekDays();
@@ -29,7 +38,6 @@ const MainPage = () => {
     }, 24 * 60 * 60 * 1000);
 
     return () => {
-      unsubscribe();
       clearInterval(timer);
     };
   }, []);
@@ -132,7 +140,7 @@ const MainPage = () => {
             <View>
               <Text style={styles.aText}>Welcome back</Text>
               <Text style={[styles.aText, { fontSize: 22, fontWeight: "600" }]}>
-                {userName}
+                {isLoading ? 'Loading...' : userName}
               </Text>
             </View>
           </View>
@@ -157,11 +165,11 @@ const MainPage = () => {
         </View>
         <View>
           <View style={styles.todayText}>
-            <Text style={styles.TodayAc}>Today Activity</Text>
+            <Text style={styles.AIWorkout}>Today Activity</Text>
           </View>
         </View>
         <View style={styles.myPlanContainer}>
-          <Text style={styles.myPlanTitle}>My Plan</Text>
+          <Text style={styles.AIWorkout}>My Plan</Text>
           <FlatList
             data={plans}
             renderItem={renderPlanItem}
@@ -172,6 +180,39 @@ const MainPage = () => {
             snapToAlignment="center"
             decelerationRate="fast"
           />
+          <TouchableOpacity style={styles.Explore}>
+            <FontAwesomeIcon icon={faArrowUpRightFromSquare} style={styles.ExploreIcon}/>
+            <Text style={styles.ExploreText}>Explore All Plans</Text>
+          </TouchableOpacity>
+        </View>
+        <View>
+          <View>
+            <Text style={styles.AIWorkout}>AI Workout</Text>
+          </View>
+          <View>
+            <ImageBackground
+              source={AIW}
+              style={{ height: 150  }}
+              imageStyle={{borderRadius: 20}}
+              resizeMode="cover"
+            >
+              <TouchableOpacity style={styles.AIButton}>
+                <Text
+                  style={[styles.startButtonAI, { color: 'blue' }]}
+                >
+                  START
+                </Text>
+              </TouchableOpacity>
+            </ImageBackground>
+          </View>
+        </View>
+        <View>
+          <View>
+            <Text style={styles.AIWorkout}>Classic Workout</Text>
+          </View>
+          <View>
+
+          </View>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -186,6 +227,8 @@ const styles = StyleSheet.create({
   scrollViewContainer: {
     flexGrow: 1,
     paddingHorizontal: 16,
+    paddingBottom: 110,
+    paddingTop: 10
   },
   headerContainer: {
     flexDirection: "row",
@@ -243,16 +286,6 @@ const styles = StyleSheet.create({
   },
   currentDateText: {
     color: '#e17046',
-  },
-  TodayAc: {
-    color: 'white',
-    fontSize: 16,
-  },
-  myPlanTitle: {
-    color: 'white',
-    marginTop: 10,
-    marginBottom: 10,
-    fontSize: 16,
   },
   planItemContainer: {
     width: itemWidth,
@@ -320,6 +353,46 @@ const styles = StyleSheet.create({
   startButtonText: {
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  AIWorkout:{
+    color: 'white',
+    fontSize: 16,
+    marginTop: 10,
+    marginBottom:10,
+  },
+  startButtonAI:{
+    fontSize: 12,
+    fontWeight: 'bold',
+  },
+  AIButton: {
+    backgroundColor: 'white',
+    paddingVertical: 10,
+    borderRadius: 25,
+    alignItems: 'center',
+    width: 80,
+    top: 90,
+    left: 30,
+    height: 34
+  },
+  Explore:{
+    backgroundColor: 'black',
+    borderRadius: 15,
+    padding: 18,
+    marginTop: 15,
+    marginBottom: 10
+  },
+  ExploreText:{
+    fontSize: 13,
+    fontWeight: '500',
+    color: "#f0784b",
+    textAlign: "center",
+  },
+  ExploreIcon: {
+    color: '#f0784b', 
+    marginRight: 10, 
+    position: 'absolute',
+    left: 115,
+    top: 19
   },
 });
 

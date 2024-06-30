@@ -12,10 +12,10 @@ import ResetPassword from "../(forgotPassword)/ResetPassword";
 
 const Stack = createNativeStackNavigator();
 
-const AppNavigation = () => {
+const AppNavigation = ({ initialRoute }) => {
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="OnboardScreen">
+      <Stack.Navigator initialRouteName={initialRoute}>
         <Stack.Screen name="HomeScreen" component={HomeScreen} options={{ headerShown: false }}/>
         <Stack.Screen name="SignIn" component={SignIn} options={{ headerShown: false }}/>
         <Stack.Screen name="SignUp" component={SignUp} options={{ headerShown: false }}/>
