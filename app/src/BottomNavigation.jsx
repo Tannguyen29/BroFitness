@@ -3,9 +3,9 @@ import { Text } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import MainPage from '../(tabs)/MainPage';
 import Profiles from '../(tabs)/profile';
-import Notifications from '../(tabs)/Notification';
-import Like from '../(tabs)/Like';
-import { Home, Profile, Notification, Heart } from 'iconsax-react-native';
+import Calendars from '../(tabs)/Calendar';
+import Discovers from '../(tabs)/Discover';
+import { Home, Profile, Calendar, Discover } from 'iconsax-react-native';
 
 const Tab = createBottomTabNavigator();
 
@@ -20,12 +20,12 @@ const BottomNavigation = () => {
         tabBarIcon: ({ focused, color, size }) => {
           if (route.name === 'MainPage') {
             return <Home size={size} color={focused ? 'coral' : "#676767"} />;
-          } else if (route.name === 'Notification') {
-            return <Notification size={size} color={focused ? 'coral' : "#676767"} />;
+          } else if (route.name === 'Calendar') {
+            return <Calendar size={size} color={focused ? 'coral' : "#676767"} />;
           } else if (route.name === 'Profile') {
             return <Profile size={size} color={focused ? 'coral' : "#676767"} />;
           } else {
-            return <Heart size={size} color={focused ? 'coral' : "#676767"} />;
+            return <Discover size={size} color={focused ? 'coral' : "#676767"} />;
           }
         },
         tabBarLabel: ({ focused }) => {
@@ -36,10 +36,10 @@ const BottomNavigation = () => {
             labelText = 'Home';
           } else if (route.name === 'Profile') {
             labelText = 'Profile';
-          } else if (route.name === 'Notification') {
-            labelText = 'Notification';
+          } else if (route.name === 'Calendar') {
+            labelText = 'Calendar';
           } else {
-            labelText = 'Like';
+            labelText = 'Discover';
           }
 
           return <Text style={{ fontSize: 12, fontWeight: 'bold', color: focused ? 'coral' : "#676767" }}>{labelText}</Text>;
@@ -59,8 +59,8 @@ const BottomNavigation = () => {
       })}
     >
       <Tab.Screen name="MainPage" component={MainPage} />
-      <Tab.Screen name="Like" component={Like} />
-      <Tab.Screen name="Notification" component={Notifications} />
+      <Tab.Screen name="Discover" component={Discovers} />
+      <Tab.Screen name="Calendar" component={Calendars} />
       <Tab.Screen name="Profile" component={Profiles} />
     </Tab.Navigator>
   );
