@@ -70,7 +70,7 @@ const SignIn = ({ navigation }) => {
 
   const handleSignIn = async () => {
     try {
-      const response = await axios.post('http://192.168.1.55:5000/signin', { email, password });
+      const response = await axios.post('http://192.168.2.28:5000/signin', { email, password });
       const { token, name } = response.data;
       
       await saveUserInfo(token, name || email);
