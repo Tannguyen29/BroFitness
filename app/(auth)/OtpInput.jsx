@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Text, View, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { Text, View, TextInput, TouchableOpacity, StyleSheet, Alert, Keyboard, TouchableWithoutFeedback } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { verifyOtp, resendOtp } from '../../config/api';
 
@@ -69,51 +69,53 @@ const OtpInput = ({ navigation, route }) => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.content}>
-        <Text style={styles.title}>Confirm your code</Text>
-        <Text style={styles.subtitle}>
-          Put in the OTP code we sent to your email for confirmation{" "}
-          {maskEmail(email)}
-        </Text>
-        <View style={styles.otpContainer}>
-          {[0, 1, 2, 3].map((index) => (
-            <TextInput
-              key={index}
-              ref={(ref) => (inputRefs.current[index] = ref)}
-              style={styles.otpInput}
-              maxLength={1}
-              keyboardType="number-pad"
-              onChangeText={(value) => handleOtpChange(value, index)}
-              value={otp[index]}
-            />
-          ))}
-        </View>
-        <TouchableOpacity
-          style={styles.confirmButton}
-          onPress={handleVerifyOtp}
-        >
-          <Text style={styles.confirmButtonText}>Confirm</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[
-            styles.resendButton,
-            (isResending || countdown > 0) && styles.disabledButton,
-          ]}
-          onPress={handleResendOtp}
-          disabled={isResending || countdown > 0}
-        >
-          <Text style={styles.resendButtonText}>
-            {isResending
-              ? "Sending..."
-              : countdown > 0
-              ? `Resend in ${formatTime(countdown)}`
-              : "Haven't got the code? Resend"}
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+      <SafeAreaView style={styles.container}>
+        <View style={styles.content}>
+          <Text style={styles.title}>Confirm your code</Text>
+          <Text style={styles.subtitle}>
+            Put in the OTP code we sent to your email for confirmation{" "}
+            {maskEmail(email)}
           </Text>
-        </TouchableOpacity>
-        {error && <Text style={styles.errorText}>{error}</Text>}
-      </View>
-    </SafeAreaView>
+          <View style={styles.otpContainer}>
+            {[0, 1, 2, 3].map((index) => (
+              <TextInput
+                key={index}
+                ref={(ref) => (inputRefs.current[index] = ref)}
+                style={styles.otpInput}
+                maxLength={1}
+                keyboardType="number-pad"
+                onChangeText={(value) => handleOtpChange(value, index)}
+                value={otp[index]}
+              />
+            ))}
+          </View>
+          <TouchableOpacity
+            style={styles.confirmButton}
+            onPress={handleVerifyOtp}
+          >
+            <Text style={styles.confirmButtonText}>Confirm</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[
+              styles.resendButton,
+              (isResending || countdown > 0) && styles.disabledButton,
+            ]}
+            onPress={handleResendOtp}
+            disabled={isResending || countdown > 0}
+          >
+            <Text style={styles.resendButtonText}>
+              {isResending
+                ? "Sending..."
+                : countdown > 0
+                ? `Resend in ${formatTime(countdown)}`
+                : "Haven't got the code? Resend"}
+            </Text>
+          </TouchableOpacity>
+          {error && <Text style={styles.errorText}>{error}</Text>}
+        </View>
+      </SafeAreaView>
+    </TouchableWithoutFeedback>
   );
 };
 
@@ -138,15 +140,17 @@ const styles = StyleSheet.create({
     color: 'white',
     textAlign: 'center',
     marginBottom: 20,
-    lineHeight: 30
+    lineHeight: 30,
   },
   otpContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     width: '80%',
+    gap: 12,
+    marginRight: 10
   },
   otpInput: {
-    width: 50,
+    width: 70,
     height: 50,
     borderWidth: 1,
     borderColor: 'gray',
@@ -162,7 +166,7 @@ const styles = StyleSheet.create({
     borderRadius: 25,
     marginTop: 30,
     width: '80%',
-    top: 100
+    top: 100,
   },
   confirmButtonText: {
     color: 'white',
@@ -174,11 +178,12 @@ const styles = StyleSheet.create({
   },
   resendButtonText: {
     color: '#FD6300',
-    top: 100
+    top: 100,
   },
   errorText: {
     color: 'red',
     marginTop: 20,
+    bottom: 60,
   },
   disabledButton: {
     opacity: 0.5,
