@@ -26,8 +26,7 @@ const SignUp = ({ navigation }) => {
     }
     try {
       await axios.post('http://192.168.1.55:5000/signup', { name, email, password });
-      alert("User registered successfully! Please sign in.");
-      navigation.navigate("SignIn");
+      navigation.navigate("OtpInput", { email });
     } catch (error) {
       setError(error.response ? error.response.data : 'Error signing up');
     }

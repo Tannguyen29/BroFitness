@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, SafeAreaView, ScrollView, StyleSheet, FlatList, TouchableOpacity, Dimensions, ImageBackground } from "react-native";
+import { View, Text, SafeAreaView, ScrollView, StyleSheet, FlatList, TouchableOpacity, Dimensions, ImageBackground, Image } from "react-native";
 import { Avatar } from "@rneui/themed";
 import { Notification } from "iconsax-react-native";
 import { auth } from "../../config/FirebaseConfig";
 import AIW from "../../assets/image/slide4.jpg"
 import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
-import { faArrowUpRightFromSquare } from "@fortawesome/free-solid-svg-icons"
+import { faArrowUpRightFromSquare, faChevronRight } from "@fortawesome/free-solid-svg-icons"
 import { getUserInfo } from '../../config/api'
 
 const { width: screenWidth } = Dimensions.get('window');
@@ -140,7 +140,7 @@ const MainPage = () => {
             <View>
               <Text style={styles.aText}>Welcome back</Text>
               <Text style={[styles.aText, { fontSize: 22, fontWeight: "600" }]}>
-                {isLoading ? 'Loading...' : userName}
+                {isLoading ? "Loading..." : userName}
               </Text>
             </View>
           </View>
@@ -181,7 +181,10 @@ const MainPage = () => {
             decelerationRate="fast"
           />
           <TouchableOpacity style={styles.Explore}>
-            <FontAwesomeIcon icon={faArrowUpRightFromSquare} style={styles.ExploreIcon}/>
+            <FontAwesomeIcon
+              icon={faArrowUpRightFromSquare}
+              style={styles.ExploreIcon}
+            />
             <Text style={styles.ExploreText}>Explore All Plans</Text>
           </TouchableOpacity>
         </View>
@@ -192,14 +195,12 @@ const MainPage = () => {
           <View>
             <ImageBackground
               source={AIW}
-              style={{ height: 150  }}
-              imageStyle={{borderRadius: 20}}
+              style={{ height: 150 }}
+              imageStyle={{ borderRadius: 20 }}
               resizeMode="cover"
             >
               <TouchableOpacity style={styles.AIButton}>
-                <Text
-                  style={[styles.startButtonAI, { color: 'blue' }]}
-                >
+                <Text style={[styles.startButtonAI, { color: "blue" }]}>
                   START
                 </Text>
               </TouchableOpacity>
@@ -210,8 +211,48 @@ const MainPage = () => {
           <View>
             <Text style={styles.AIWorkout}>Classic Workout</Text>
           </View>
-          <View>
-
+          <View style={styles.classicWorkoutContainer}>
+            <Text style={styles.workoutCount}>5 Workouts</Text>
+            <Text style={styles.workoutLevel}>Beginner</Text>
+            {[
+              {
+                name: "Abs · Beginner",
+                duration: "18 mins",
+                image: require("../../assets/image/slide4.jpg"),
+              },
+              {
+                name: "Chest · Beginner",
+                duration: "7 mins",
+                image: require("../../assets/image/slide3.jpg"),
+              },
+              {
+                name: "Arm · Beginner",
+                duration: "16 mins",
+                image: require("../../assets/image/slide2.jpg"),
+              },
+              {
+                name: "Leg · Beginner",
+                duration: "22 mins",
+                image: require("../../assets/image/slide1.jpg"),
+              },
+              {
+                name: "Shoulder & Back · Beginner",
+                duration: "15 mins",
+                image: require("../../assets/image/slide4.jpg"),
+              },
+            ].map((workout, index) => (
+              <TouchableOpacity key={index} style={styles.workoutItem}>
+                <Image source={workout.image} style={styles.workoutImage} />
+                <View style={styles.workoutInfo}>
+                  <Text style={styles.workoutName}>{workout.name}</Text>
+                  <Text style={styles.workoutDuration}>{workout.duration}</Text>
+                </View>
+                <FontAwesomeIcon
+                  icon={faChevronRight}
+                  style={styles.workoutArrow}
+                />
+              </TouchableOpacity>
+            ))}
           </View>
         </View>
       </ScrollView>
@@ -227,7 +268,7 @@ const styles = StyleSheet.create({
   scrollViewContainer: {
     flexGrow: 1,
     paddingHorizontal: 16,
-    paddingBottom: 110,
+    paddingBottom: 70,
     paddingTop: 10
   },
   headerContainer: {
@@ -394,6 +435,49 @@ const styles = StyleSheet.create({
     left: 115,
     top: 19
   },
+  classicWorkoutContainer: {
+  backgroundColor: '#1c1c1e',
+  borderRadius: 10,
+  padding: 15,
+  marginTop: 10,
+},
+workoutCount: {
+  color: 'white',
+  fontSize: 24,
+  fontWeight: 'bold',
+},
+workoutLevel: {
+  color: 'white',
+  fontSize: 24,
+  fontWeight: 'bold',
+  marginBottom: 15,
+},
+workoutItem: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  marginBottom: 15,
+},
+workoutImage: {
+  width: 60,
+  height: 60,
+  borderRadius: 10,
+  marginRight: 15,
+},
+workoutInfo: {
+  flex: 1,
+},
+workoutName: {
+  color: 'white',
+  fontSize: 16,
+  fontWeight: 'bold',
+},
+workoutDuration: {
+  color: 'gray',
+  fontSize: 14,
+},
+workoutArrow: {
+  color: 'gray',
+},
 });
 
 export default MainPage;

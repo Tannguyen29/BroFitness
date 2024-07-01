@@ -48,4 +48,22 @@ export const clearUserInfo = async () => {
   }
 };
 
+export const verifyOtp = async (email, otp) => {
+  try {
+    const response = await axios.post('http://192.168.1.55:5000/verify-otp', { email, otp });
+    return response.data;
+  } catch (error) {
+    throw error.response ? error.response.data : 'Error verifying OTP';
+  }
+};
+
+export const resendOtp = async (email) => {
+  try {
+    const response = await axios.post('http://192.168.1.55:5000/resend-otp', { email });
+    return response.data;
+  } catch (error) {
+    throw error.response ? error.response.data : 'Error resending OTP';
+  }
+};
+
 export default apiClient;

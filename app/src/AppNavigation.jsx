@@ -7,7 +7,7 @@ import SignUp from "../(auth)/signUp"
 import OnboardScreen from "../screen/OnboardScreen";
 import BottomNavigation from "./BottomNavigation";
 import EmailInput from "../(forgotPassword)/EmailInput";
-import OtpInput from "../(forgotPassword)/OtpInput";
+import OtpInput from "../(auth)/OtpInput";
 import ResetPassword from "../(forgotPassword)/ResetPassword";
 
 const Stack = createNativeStackNavigator();
