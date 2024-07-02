@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Text, View, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { Text, View, TextInput, TouchableOpacity, StyleSheet, Alert, TouchableWithoutFeedback, Keyboard } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { verifyOtp, resendOtp } from '../../config/api';
 
@@ -69,6 +69,7 @@ const OtpForgotPassword = ({ navigation, route }) => {
   };
 
   return (
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
         <Text style={styles.title}>Confirm your code</Text>
@@ -114,6 +115,7 @@ const OtpForgotPassword = ({ navigation, route }) => {
         {error && <Text style={styles.errorText}>{error}</Text>}
       </View>
     </SafeAreaView>
+    </TouchableWithoutFeedback>
   );
 };
 
@@ -161,7 +163,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 30,
     borderRadius: 25,
     marginTop: 30,
-    width: '80%',
+    width: 350,
     top: 100
   },
   confirmButtonText: {
