@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Alert } from 'react-native';
 import { sendResetPasswordEmail } from '../../config/api';
 
 const EmailInput = ({ navigation }) => {
@@ -14,7 +14,8 @@ const EmailInput = ({ navigation }) => {
 
     try {
       await sendResetPasswordEmail(email);
-      navigation.navigate('OtpInput', { email });
+      Alert.alert("Success", "OTP has been sent to your email.");
+      navigation.navigate('OtpForgotPassword', { email });
     } catch (error) {
       setError(error.message);
     }
@@ -31,7 +32,7 @@ const EmailInput = ({ navigation }) => {
       />
       {error && <Text>{error}</Text>}
       <TouchableOpacity onPress={handleSendEmail}>
-        <Text>Send OTP</Text>
+        <Text>Send OTP Now</Text>
       </TouchableOpacity>
     </View>
   );

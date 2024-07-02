@@ -1,7 +1,7 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const API_URL = 'http://192.168.1.55:5000';
+const API_URL = 'http://192.168.2.28:5000';
 
 const apiClient = axios.create({
   baseURL: API_URL,
@@ -50,7 +50,7 @@ export const clearUserInfo = async () => {
 
 export const verifyOtp = async (email, otp) => {
   try {
-    const response = await axios.post('http://192.168.1.55:5000/verify-otp', { email, otp });
+    const response = await axios.post('http://192.168.2.28:5000/verify-otp', { email, otp });
     return response.data;
   } catch (error) {
     throw error.response ? error.response.data : 'Error verifying OTP';
@@ -59,11 +59,31 @@ export const verifyOtp = async (email, otp) => {
 
 export const resendOtp = async (email) => {
   try {
-    const response = await axios.post('http://192.168.1.55:5000/resend-otp', { email });
+    const response = await axios.post('http://192.168.2.28:5000/resend-otp', { email });
     return response.data;
   } catch (error) {
     throw error.response ? error.response.data : 'Error resending OTP';
   }
 };
+export const sendResetPasswordEmail = async (email) => {
+  try {
+    const response = await axios.post('http://192.168.2.28:5000/send-otp', { email });
+    return response.data;
+  } catch (error) {
+    throw error.response ? error.response.data : 'Error sending OTP';
+  }
+};
 
+export const resetPassword = async(email, newPassword, confirmPassword) => {
+  try {
+    const response = await axios.post('http://192.168.2.28:5000/resetpassword',{
+      email,
+      newPassword,
+      confirmPassword,
+    });
+    return response.data;
+  }catch (error){
+    throw new Error(error.response?.data || 'Error resetting password');
+  }
+};
 export default apiClient;
