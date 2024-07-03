@@ -48,7 +48,7 @@ const SignUp = ({ navigation }) => {
     }
 
     try {
-      await axios.post('http://192.168.1.55:5000/signup', { name, email, password });
+      await axios.post('http://192.168.2.28:5000/signup', { name, email, password });
       navigation.navigate("OtpInput", { email });
     } catch (error) {
       setError(error.response ? error.response.data : 'Error signing up');
@@ -75,7 +75,7 @@ const SignUp = ({ navigation }) => {
             style={{ width: `${getStrength() * 100}%` }} 
           />
         </View>
-        <View className="flex-row flex-wrap justify-between">
+        <View className="flex-row flex-wrap justify-between ">
           {requirements.map((req, index) => (
             <View key={index} className="flex-row items-center mb-2 w-[48%]">
               {req.regex.test(password) ? (

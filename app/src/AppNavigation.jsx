@@ -10,6 +10,7 @@ import EmailInput from "../(forgotPassword)/EmailInput";
 import OtpInput from "../(auth)/OtpInput";
 import ResetPassword from "../(forgotPassword)/ResetPassword";
 import OtpForgotPassword from "../(forgotPassword)/OtpForgotPassword";
+import FinishResetPassword from "../(forgotPassword)/FinishResetPassword";
 const Stack = createNativeStackNavigator();
 
 const AppNavigation = ({ initialRoute }) => {
@@ -25,6 +26,7 @@ const AppNavigation = ({ initialRoute }) => {
         <Stack.Screen name="OtpInput" component={OtpInput} options={{ headerShown: false }}/>
         <Stack.Screen name="ResetPassword" component={ResetPassword} options={{ headerShown: false }}/>
         <Stack.Screen name="OtpForgotPassword" component={OtpForgotPassword} options={{ headerShown: false }}/>
+        <Stack.Screen name="FinishResetPassword" component={FinishResetPassword} options={{ headerShown: false }}/>
       </Stack.Navigator>
     </NavigationContainer>
   );
