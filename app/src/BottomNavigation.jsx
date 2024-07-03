@@ -5,7 +5,8 @@ import MainPage from '../(tabs)/MainPage';
 import Profiles from '../(tabs)/profile';
 import Calendars from '../(tabs)/Calendar';
 import Discovers from '../(tabs)/Discover';
-import { Home, Profile, Calendar, Discover } from 'iconsax-react-native';
+import Personal from '../(tabs)/Personal';
+import { Home, Profile, Calendar, Discover, TaskSquare } from 'iconsax-react-native';
 
 const Tab = createBottomTabNavigator();
 
@@ -24,7 +25,9 @@ const BottomNavigation = () => {
             return <Calendar size={size} color={focused ? 'coral' : "#676767"} />;
           } else if (route.name === 'Profile') {
             return <Profile size={size} color={focused ? 'coral' : "#676767"} />;
-          } else {
+          } else if (route.name === 'Personal') {
+            return <TaskSquare size={size} color={focused ? 'coral' : "#676767"} />;
+          }else {
             return <Discover size={size} color={focused ? 'coral' : "#676767"} />;
           }
         },
@@ -38,6 +41,8 @@ const BottomNavigation = () => {
             labelText = 'Profile';
           } else if (route.name === 'Calendar') {
             labelText = 'Calendar';
+          }else if (route.name === 'Personal') {
+            labelText = 'Personal';
           } else {
             labelText = 'Discover';
           }
@@ -60,6 +65,7 @@ const BottomNavigation = () => {
     >
       <Tab.Screen name="MainPage" component={MainPage} />
       <Tab.Screen name="Discover" component={Discovers} />
+      <Tab.Screen name="Personal" component={Personal} />
       <Tab.Screen name="Calendar" component={Calendars} />
       <Tab.Screen name="Profile" component={Profiles} />
     </Tab.Navigator>
