@@ -17,9 +17,13 @@ export default function App() {
   useEffect(() => {
     const initialize = async () => {
       try {
-        const { token } = await getUserInfo();
+        const { token, personalInfoCompleted } = await getUserInfo();
         if (token) {
-          setInitialRoute('BottomTabs');
+          if (personalInfoCompleted) {
+            setInitialRoute('BottomTabs');
+          } else {
+            setInitialRoute('PersonalInformationSetup');
+          }
         } else {
           const onboardingCompleted = await AsyncStorage.getItem('onboardingCompleted');
           setInitialRoute(onboardingCompleted === 'true' ? 'SignIn' : 'OnboardScreen');
@@ -33,7 +37,7 @@ export default function App() {
         }, 1500);
       }
     };
-
+  
     initialize();
   }, []);
 
