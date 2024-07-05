@@ -21,9 +21,13 @@ const SignIn = ({ navigation }) => {
 
   useEffect(() => {
     const checkLoginStatus = async () => {
-      const { token, name } = await getUserInfo();
+      const { token, name, personalInfoCompleted } = await getUserInfo();
       if (token) {
-        navigation.navigate("BottomTabs");
+        if (personalInfoCompleted) {
+          navigation.navigate("BottomTabs");
+        } else {
+          navigation.navigate("PersonalInformationSetup");
+        }
       }
     };
 
@@ -70,11 +74,11 @@ const SignIn = ({ navigation }) => {
 
   const handleSignIn = async () => {
     try {
-      const response = await axios.post('http://192.168.2.28:5000/signin', { email, password });
-      const { token, name } = response.data;
-
-      await saveUserInfo(token, name || email);
-
+      const response = await axios.post('http://192.168.1.55:5000/signin', { email, password });
+      const { token, name, personalInfoCompleted } = response.data;
+  
+      await saveUserInfo(token, name || email, personalInfoCompleted);
+  
       if (rememberMe) {
         await AsyncStorage.setItem('savedEmail', email);
         await AsyncStorage.setItem('savedPassword', password);
@@ -82,8 +86,12 @@ const SignIn = ({ navigation }) => {
         await AsyncStorage.removeItem('savedEmail');
         await AsyncStorage.removeItem('savedPassword');
       }
-
-      navigation.navigate("BottomTabs");
+  
+      if (!personalInfoCompleted) {
+        navigation.navigate("PersonalInformationSetup");
+      } else {
+        navigation.navigate("BottomTabs");
+      }
     } catch (error) {
       setError(error.response ? error.response.data : 'Error signing in');
     }
