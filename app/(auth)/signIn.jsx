@@ -2,9 +2,9 @@ import { Text, View, ScrollView, Image, TouchableOpacity } from "react-native";
 import React, { useState, useEffect } from "react";
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { TextInput } from 'react-native-paper';
 import axios from 'axios';
 import logo from "../../assets/image/gymLogo.png";
-import FormField from "../../components/FormField";
 import CustomButton from "../../components/CustomButton";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { saveUserInfo, getUserInfo } from "../../config/api";
@@ -109,18 +109,45 @@ const SignIn = ({ navigation }) => {
           <Text className="text-white text-2xl font-bold mb-8">
             Welcome to <Text className="text-orange-500">Bro Fitness</Text>
           </Text>
-          <FormField
-            placeholder="Email"
+          <TextInput
+            label="Email"
             value={email}
             onChangeText={(text) => setEmail(text)}
+            mode="outlined"
             autoCapitalize="none"
             keyboardType="email-address"
+            textColor='white'
+            outlineColor='white'
+            style={{ width: '85%', marginBottom: 20, backgroundColor: 'black'}}
+            outlineStyle={{
+              borderRadius: 15,
+            }}
+            theme={{
+              colors: {
+                primary: '#FD6300',
+                onSurfaceVariant: 'white',
+              },
+            }}
           />
-          <FormField
-            placeholder="Password"
+          <TextInput
+            label="Password"
             value={password}
             onChangeText={(text) => setPassword(text)}
-            secureTextEntry={true}
+            mode="outlined"
+            autoCapitalize="none"
+            keyboardType="email-address"
+            textColor='white'
+            outlineColor='white'
+            style={{ width: '85%', marginBottom: 10, backgroundColor: 'black'}}
+            outlineStyle={{
+              borderRadius: 15,
+            }}
+            theme={{
+              colors: {
+                primary: '#FD6300',
+                onSurfaceVariant: 'white',
+              },
+            }}
           />
           <TouchableOpacity onPress={() => navigation.navigate("EmailInput")}>
             <Text className="text-orange-500 mt-5 left-1/4">
