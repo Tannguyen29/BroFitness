@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import axios from 'axios';
 import logo from "../../assets/image/gymLogo.png";
-import FormField from "../../components/FormField";
+import { TextInput } from 'react-native-paper';
 import CustomButton from "../../components/CustomButton";
 
 const SignUp = ({ navigation }) => {
@@ -104,35 +104,91 @@ const SignUp = ({ navigation }) => {
             className="w-[70px] h-[150px]"
             resizeMode="contain"
           />
-          <Text className="text-orange-500 text-2xl font-bold ">
+          <Text className="text-orange-500 text-2xl font-bold mb-4">
             Create an account
           </Text>
-          <FormField
-            placeholder="Name"
+          
+          <TextInput
+            label="Name"
             value={name}
-            onChangeText={(value) => setName(value)}
+            onChangeText={setName}
+            mode="outlined"
             autoCapitalize="words"
+            textColor='white'
+            outlineColor='white'
+            style={{ width: '85%', marginBottom: 20, backgroundColor: 'black'}}
+            outlineStyle={{
+              borderRadius: 15,
+            }}
+            theme={{
+              colors: {
+                primary: '#FD6300',
+                onSurfaceVariant: 'white',
+              },
+            }}
           />
-          <FormField
-            placeholder="Email"
+
+          <TextInput
+            label="Email"
             value={email}
-            onChangeText={(value) => setEmail(value)}
+            onChangeText={setEmail}
+            mode="outlined"
             autoCapitalize="none"
             keyboardType="email-address"
+            textColor='white'
+            outlineColor='white'
+            style={{ width: '85%', marginBottom: 20, backgroundColor: 'black'}}
+            outlineStyle={{
+              borderRadius: 15,
+            }}
+            theme={{
+              colors: {
+                primary: '#FD6300',
+                onSurfaceVariant: 'white',
+              },
+            }}
           />
-          <FormField
-            placeholder="Password"
+
+          <TextInput
+            label="Password"
             value={password}
-            onChangeText={(value) => setPassword(value)}
+            onChangeText={setPassword}
+            mode="outlined"
             secureTextEntry={true}
+            textColor='white'
+            outlineColor='white'
+            style={{ width: '85%', marginBottom: 20, backgroundColor: 'black'}}
+            outlineStyle={{
+              borderRadius: 15,
+            }}
+            theme={{
+              colors: {
+                primary: '#FD6300',
+                onSurfaceVariant: 'white',
+              },
+            }}
           />
           {passwordError && <Text className="text-red-500 mt-1 w-4/5">{passwordError}</Text>}
           <PasswordRequirements password={password} />
-          <FormField
-            placeholder="Confirm password"
+
+          <TextInput
+            label="Confirm Password"
             value={confirmPassword}
-            onChangeText={(value) => setConfirmPassword(value)}
+            onChangeText={setConfirmPassword}
+            mode="outlined"
             secureTextEntry={true}
+            textColor='white'
+            outlineColor='white'
+            style={{ width: '85%', marginBottom: 10, backgroundColor: 'black', marginTop: 10}}
+            outlineStyle={{
+              borderRadius: 15,
+            }}
+            theme={{
+              colors: {
+                primary: '#FD6300',
+                onSurfaceVariant: 'white',
+              },
+            }}
           />
           {confirmPasswordError && <Text className="text-red-500 mt-1 w-4/5">{confirmPasswordError}</Text>}
           <View
