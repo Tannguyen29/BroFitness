@@ -1,22 +1,43 @@
-import React, { useState, useEffect } from "react";
-import { View, Text, SafeAreaView, ScrollView, StyleSheet, FlatList, TouchableOpacity, Dimensions, ImageBackground, Image } from "react-native";
+import React, { useState, useEffect, useRef, useCallback } from "react";
+import {
+  View,
+  Text,
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  FlatList,
+  TouchableOpacity,
+  Dimensions,
+  ImageBackground,
+  Image
+} from "react-native";
 import { Avatar } from "@rneui/themed";
 import { Notification } from "iconsax-react-native";
-import { auth } from "../../config/FirebaseConfig";
-import AIW from "../../assets/image/slide4.jpg"
 import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
-import { faArrowUpRightFromSquare, faChevronRight } from "@fortawesome/free-solid-svg-icons"
-import { getUserInfo } from '../../config/api'
+import { faArrowUpRightFromSquare, faChevronRight } from "@fortawesome/free-solid-svg-icons";
+import { getUserInfo } from '../../config/api';
+import axios from 'axios';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 
 const { width: screenWidth } = Dimensions.get('window');
 const itemWidth = screenWidth * 0.95;
-const itemHeight = 250; 
+const itemHeight = 250;
+const bannerHeight = 150;
+
+const API_BASE_URL = "http://192.168.1.66:5000";
 
 const MainPage = () => {
   const [userName, setUserName] = useState('');
-  const [weekDays, setWeekDays] = useState([]);
+  const [banners, setBanners] = useState([
+    { id: '1', image: require('../../assets/banner/banner1.jpg') },
+    { id: '2', image: require('../../assets/banner/banner2.jpg') },
+    { id: '3', image: require('../../assets/banner/banner3.jpg') },
+  ]);
   const [isLoading, setIsLoading] = useState(true);
-  const [currentDay, setCurrentDay] = useState(new Date().getDate());
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const flatListRef = useRef(null);
+  const [plans, setPlans] = useState([]);
+  const navigation = useNavigation();
 
   useEffect(() => {
     const loadUserInfo = async () => {
@@ -31,59 +52,70 @@ const MainPage = () => {
     };
 
     loadUserInfo();
-    updateWeekDays();
-    const timer = setInterval(() => {
-      updateWeekDays();
-      setCurrentDay(new Date().getDate());
-    }, 24 * 60 * 60 * 1000);
-
-    return () => {
-      clearInterval(timer);
-    };
   }, []);
 
-  const plans = [
-    {
-      id: '1',
-      title: 'SIX PACK CHALLENGE',
-      subtitle: '30 Days Plan • 3 Plans',
-      description: 'Killer challenge for six pack building! Get rock-hard abs and rip it into a six pack by igniting every corner of your core.',
-      image: require('../../assets/image/slide1.jpg'),
-      isPro: true,
-      accentColor: '#e17046',
-    },
-    {
-      id: '2',
-      title: 'LOSE WEIGHT FOR WOMEN',
-      subtitle: '45 Days Plan • 4 Plans',
-      description: 'Tailored weight loss program for women. Burn fat, boost metabolism, and sculpt your body with effective workouts and nutrition guidance.',
-      image: require('../../assets/image/slide2.jpg'),
-      isPro: false,
-      accentColor: '#4287f5',
-    },
-    {
-      id: '3',
-      title: 'UPPER BODY BLAST',
-      subtitle: '21 Days Plan • 3 Plans',
-      description: 'Strengthen and tone your upper body with this intensive program. Build lean muscle in your arms, chest, back, and shoulders.',
-      image: require('../../assets/image/slide3.jpg'),
-      isPro: true,
-      accentColor: '#42f5a1',
-    },
-    {
-      id: '4',
-      title: 'LOWER BODY SHAPER',
-      subtitle: '28 Days Plan • 3 Plans',
-      description: 'Focus on your legs, glutes, and core with this targeted lower body program. Sculpt and strengthen from the waist down.',
-      image: require('../../assets/image/slide4.jpg'),
-      isPro: false,
-      accentColor: '#f542a1',
-    },
-  ];
+  const fetchPlans = useCallback(async () => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/plans`);
+      setPlans(response.data);
+    } catch (error) {
+      console.error("Error fetching plans:", error);
+    }
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchPlans();
+    }, [fetchPlans])
+  );
+
+  useEffect(() => {
+    const autoplay = setInterval(() => {
+      if (currentIndex < banners.length - 1) {
+        flatListRef.current.scrollToIndex({ index: currentIndex + 1, animated: true });
+      } else {
+        flatListRef.current.scrollToIndex({ index: 0, animated: true });
+      }
+    }, 3000);
+
+    return () => clearInterval(autoplay);
+  }, [currentIndex]);
+
+  const handleScroll = (event) => {
+    const slideSize = event.nativeEvent.layoutMeasurement.width;
+    const index = event.nativeEvent.contentOffset.x / slideSize;
+    const roundIndex = Math.round(index);
+    setCurrentIndex(roundIndex);
+  };
+
+  const renderBannerItem = ({ item }) => (
+    <View style={styles.bannerItemContainer}>
+      <Image source={item.image} style={styles.bannerImage} />
+    </View>
+  );
+
+  const renderDotIndicator = () => {
+    return (
+      <View style={styles.dotContainer}>
+        {banners.map((_, index) => (
+          <View
+            key={index}
+            style={[
+              styles.dot,
+              { backgroundColor: index === currentIndex ? '#f0784b' : 'gray' }
+            ]}
+          />
+        ))}
+      </View>
+    );
+  };
 
   const renderPlanItem = ({ item }) => (
-    <View style={styles.planItemContainer}>
-      <ImageBackground source={item.image} style={styles.planBackground} imageStyle={styles.planBackgroundImage}>
+    <TouchableOpacity 
+      style={styles.planItemContainer}
+      onPress={() => navigation.navigate('PlanOverview', { planId: item._id })}
+    >
+      <ImageBackground source={{ uri: item.backgroundImage }} style={styles.planBackground} imageStyle={styles.planBackgroundImage}>
         <View style={styles.planContent}>
           <Text style={styles.planSubtitle}>{item.subtitle}</Text>
           <View style={styles.titleContainer}>
@@ -100,31 +132,12 @@ const MainPage = () => {
             {item.description}
           </Text>
           <TouchableOpacity style={styles.startButton}>
-            <Text style={[styles.startButtonText, { color: item.accentColor }]}>START</Text>
+            <Text style={[styles.startButtonText, { color: item.accentColor }]} onPress={() => navigation.navigate('PlanOverview', { planId: item._id })}>START</Text>
           </TouchableOpacity>
         </View>
       </ImageBackground>
-    </View>
+    </TouchableOpacity>
   );
-
-  const updateWeekDays = () => {
-    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-    const today = new Date();
-    const weekDays = [];
-    const dayOfWeek = today.getDay();
-  
-    for (let i = 0; i < 7; i++) {
-      const date = new Date(today);
-      date.setDate(today.getDate() - dayOfWeek + i + (dayOfWeek === 0 ? -6 : 1));
-      weekDays.push({
-        day: days[date.getDay() === 0 ? 6 : date.getDay() - 1],
-        date: date.getDate(),
-      });
-    }
-  
-    setWeekDays(weekDays);
-  };
-  
 
   return (
     <SafeAreaView style={styles.container}>
@@ -148,32 +161,28 @@ const MainPage = () => {
             <Notification size="32" color="white" />
           </View>
         </View>
-        <View style={styles.weekContainer}>
-          {weekDays.map((item, index) => (
-            <View key={index} style={styles.dayBox}>
-              <Text style={styles.dayText}>{item.day}</Text>
-              <Text
-                style={[
-                  styles.dateText,
-                  item.date === currentDay ? styles.currentDateText : null,
-                ]}
-              >
-                {item.date}
-              </Text>
-            </View>
-          ))}
-        </View>
-        <View>
-          <View style={styles.todayText}>
-            <Text style={styles.AIWorkout}>Today Activity</Text>
-          </View>
+        <View style={styles.bannerContainer}>
+          <FlatList
+            ref={flatListRef}
+            data={banners}
+            renderItem={renderBannerItem}
+            keyExtractor={(item) => item.id}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            pagingEnabled
+            snapToAlignment="center"
+            decelerationRate="fast"
+            onScroll={handleScroll}
+            viewabilityConfig={{ itemVisiblePercentThreshold: 50 }}
+          />
+          {renderDotIndicator()}
         </View>
         <View style={styles.myPlanContainer}>
           <Text style={styles.AIWorkout}>My Plan</Text>
           <FlatList
             data={plans}
             renderItem={renderPlanItem}
-            keyExtractor={(item) => item.id}
+            keyExtractor={(item) => item._id}
             horizontal
             showsHorizontalScrollIndicator={false}
             pagingEnabled
@@ -194,7 +203,7 @@ const MainPage = () => {
           </View>
           <View>
             <ImageBackground
-              source={AIW}
+              source={require('../../assets/image/slide4.jpg')}
               style={{ height: 150 }}
               imageStyle={{ borderRadius: 20 }}
               resizeMode="cover"
@@ -302,31 +311,31 @@ const styles = StyleSheet.create({
     width: 80,
     left: 45
   },
-  weekContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  bannerContainer: {
     marginTop: 20,
-    backgroundColor: 'black',
-    borderRadius: 10,
-    padding: 5,
   },
-  dayBox: {
-    width: 40,
-    height: 60,
+  bannerItemContainer: {
+    width: itemWidth * 0.95,
+    height: bannerHeight * 1.25,
+    marginRight: 10,
+    left: 5
+  },
+  bannerImage: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 20,
+  },
+  dotContainer: {
+    flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
+    marginTop: 10,
   },
-  dayText: {
-    color: 'white',
-    fontSize: 12,
-    fontWeight: 'bold',
-  },
-  dateText: {
-    color: 'white',
-    fontSize: 16,
-  },
-  currentDateText: {
-    color: '#e17046',
+  dot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginHorizontal: 4,
   },
   planItemContainer: {
     width: itemWidth,
@@ -436,48 +445,48 @@ const styles = StyleSheet.create({
     top: 19
   },
   classicWorkoutContainer: {
-  backgroundColor: '#1c1c1e',
-  borderRadius: 10,
-  padding: 15,
-  marginTop: 10,
-},
-workoutCount: {
-  color: 'white',
-  fontSize: 24,
-  fontWeight: 'bold',
-},
-workoutLevel: {
-  color: 'white',
-  fontSize: 24,
-  fontWeight: 'bold',
-  marginBottom: 15,
-},
-workoutItem: {
-  flexDirection: 'row',
-  alignItems: 'center',
-  marginBottom: 15,
-},
-workoutImage: {
-  width: 60,
-  height: 60,
-  borderRadius: 10,
-  marginRight: 15,
-},
-workoutInfo: {
-  flex: 1,
-},
-workoutName: {
-  color: 'white',
-  fontSize: 16,
-  fontWeight: 'bold',
-},
-workoutDuration: {
-  color: 'gray',
-  fontSize: 14,
-},
-workoutArrow: {
-  color: 'gray',
-},
-});
+    backgroundColor: '#1c1c1e',
+    borderRadius: 10,
+    padding: 15,
+    marginTop: 10,
+  },
+  workoutCount: {
+    color: 'white',
+    fontSize: 24,
+    fontWeight: 'bold',
+  },
+  workoutLevel: {
+    color: 'white',
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 15,
+  },
+  workoutItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 15,
+  },
+  workoutImage: {
+    width: 60,
+    height: 60,
+    borderRadius: 10,
+    marginRight: 15,
+  },
+  workoutInfo: {
+    flex: 1,
+  },
+  workoutName: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  workoutDuration: {
+    color: 'gray',
+    fontSize: 14,
+  },
+  workoutArrow: {
+    color: 'gray',
+  },
+  });
 
-export default MainPage;
+  export default MainPage;
