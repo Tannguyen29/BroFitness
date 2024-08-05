@@ -15,6 +15,8 @@ import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { saveUserInfo, getUserInfo } from "../../config/api";
 import WheelPicker from "@quidone/react-native-wheel-picker";
+import ProgressBar from "react-native-progress/Bar";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const PersonalInformationSetup = ({ navigation }) => {
   const [currentStep, setCurrentStep] = useState(0);
@@ -196,7 +198,7 @@ const PersonalInformationSetup = ({ navigation }) => {
 
   const availableEquipment = [
     {
-      id: "none",
+      id: "Body Weight",
       title: "No Equipment",
       image: require("../../assets/Equipment/None.png"),
     },
@@ -283,7 +285,7 @@ const PersonalInformationSetup = ({ navigation }) => {
     try {
       const token = await AsyncStorage.getItem("userToken");
       const response = await axios.post(
-        "http://192.168.1.55:5000/personal-information-setup",
+        "http://10.22.48.224:5000/personal-information-setup",
         {
           gender,
           age,
@@ -591,7 +593,6 @@ const PersonalInformationSetup = ({ navigation }) => {
       ),
     },
     {
-      title: "Experience Level",
       component: (
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>
@@ -656,7 +657,6 @@ const PersonalInformationSetup = ({ navigation }) => {
       ),
     },
     {
-      title: "Fitness Goal",
       component: (
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>What's your main goal?</Text>
@@ -683,9 +683,8 @@ const PersonalInformationSetup = ({ navigation }) => {
       ),
     },
     {
-      title: "Health Issues",
       component: (
-        <View style={styles.section}>
+        <ScrollView style={styles.section}>
           <Text style={styles.sectionTitle}>Any health issues?</Text>
           <View style={styles.infoBox}>
             <Text style={styles.infoText}>
@@ -706,16 +705,14 @@ const PersonalInformationSetup = ({ navigation }) => {
               <Image source={issue.image} style={styles.healthIssueImage} />
             </TouchableOpacity>
           ))}
-        </View>
+        </ScrollView>
       ),
     },
     {
-      title: "Available Equipment",
       component: (
         <ScrollView style={styles.section}>
           <Text style={styles.sectionTitle}>What equipment do you have?</Text>
           <View style={styles.infoBox}>
-            {/* <Image source={require('../../assets/info-icon.png')} style={styles.infoIcon} /> */}
             <Text style={styles.infoText}>
               Select the equipment you have access to. We'll tailor your
               workouts accordingly.
@@ -768,22 +765,36 @@ const PersonalInformationSetup = ({ navigation }) => {
   };
 
   const handlePrevious = () => {
-    if (currentStep > 0) {
+    if (currentStep > 1) {
       setCurrentStep(currentStep - 1);
+    } else if (currentStep === 1) {
+      setCurrentStep(0);
     }
   };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
       {currentStep > 0 && (
         <TouchableOpacity style={styles.backButton} onPress={handlePrevious}>
           <Icon name="chevron-left" size={30} color="#FD6300" />
         </TouchableOpacity>
       )}
-      <ScrollView style={styles.scrollView}>
+      {currentStep > 0 && (
+        <View style={styles.progressBarContainer}>
+          <ProgressBar
+            progress={currentStep / (steps.length - 1)}
+            width={null}
+            height={10}
+            color="#FD6300"
+            unfilledColor="#1c1c1c"
+            borderWidth={0}
+          />
+        </View>
+      )}
+      <View style={styles.scrollView}>
         <Text style={styles.title}>{steps[currentStep].title}</Text>
         {steps[currentStep].component}
-      </ScrollView>
+      </View>
       <View style={styles.navigationButtons}>
         <TouchableOpacity
           style={[
@@ -798,7 +809,7 @@ const PersonalInformationSetup = ({ navigation }) => {
           </Text>
         </TouchableOpacity>
       </View>
-    </View>
+    </SafeAreaView>
   );
 };
 
@@ -811,6 +822,12 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 20,
   },
+  progressBarContainer: {
+    position: 'static',
+    top: 55,
+    width: 370,
+    left: 20
+  },
   title: {
     fontSize: 24,
     fontWeight: "bold",
@@ -820,8 +837,8 @@ const styles = StyleSheet.create({
   },
   backButton: {
     position: "absolute",
-    top: 20,
-    left: 15,
+    top: 40,
+    left: 10,
     zIndex: 1,
   },
   disabledButton: {
@@ -834,7 +851,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 34,
     fontWeight: "bold",
-    marginBottom: 20,
+    marginBottom: 10,
     textAlign: "center",
     color: "white",
   },
