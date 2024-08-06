@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import axios from 'axios';
 import logo from "../../assets/image/gymLogo.png";
-import FormField from "../../components/FormField";
+import { TextInput } from 'react-native-paper';
 import CustomButton from "../../components/CustomButton";
 import Icon from 'react-native-vector-icons/Ionicons'; // Import Icon
 
@@ -51,7 +51,9 @@ const SignUp = ({ navigation }) => {
     }
 
     try {
-      await axios.post('http://192.168.2.28:5000/signup', { name, email, password });
+
+      await axios.post('http://192.168.1.66:5000/signup', { name, email, password });
+
       navigation.navigate("OtpInput", { email });
     } catch (error) {
       setError(error.response ? error.response.data : 'Error signing up');
@@ -115,21 +117,49 @@ const SignUp = ({ navigation }) => {
             className="w-[70px] h-[150px]"
             resizeMode="contain"
           />
-          <Text className="text-orange-500 text-2xl font-bold ">
+          <Text className="text-orange-500 text-2xl font-bold mb-4">
             Create an account
           </Text>
-          <FormField
-            placeholder="Name"
+          
+          <TextInput
+            label="Name"
             value={name}
-            onChangeText={(value) => setName(value)}
+            onChangeText={setName}
+            mode="outlined"
             autoCapitalize="words"
+            textColor='white'
+            outlineColor='white'
+            style={{ width: '85%', marginBottom: 20, backgroundColor: 'black'}}
+            outlineStyle={{
+              borderRadius: 15,
+            }}
+            theme={{
+              colors: {
+                primary: '#FD6300',
+                onSurfaceVariant: 'white',
+              },
+            }}
           />
-          <FormField
-            placeholder="Email"
+
+          <TextInput
+            label="Email"
             value={email}
-            onChangeText={(value) => setEmail(value)}
+            onChangeText={setEmail}
+            mode="outlined"
             autoCapitalize="none"
             keyboardType="email-address"
+            textColor='white'
+            outlineColor='white'
+            style={{ width: '85%', marginBottom: 20, backgroundColor: 'black'}}
+            outlineStyle={{
+              borderRadius: 15,
+            }}
+            theme={{
+              colors: {
+                primary: '#FD6300',
+                onSurfaceVariant: 'white',
+              },
+            }}
           />
           <View style={styles.inputContainer}>
             <TextInput
@@ -159,6 +189,7 @@ const SignUp = ({ navigation }) => {
               <Icon name={isConfirmPasswordVisible ? 'eye-off' : 'eye'} size={20} color="white"/>
             </TouchableOpacity>
           </View>
+
           {confirmPasswordError && <Text className="text-red-500 mt-1 w-4/5">{confirmPasswordError}</Text>}
           <View
             style={{

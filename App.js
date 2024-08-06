@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, StyleSheet } from 'react-native';
-import { useFonts, Inter_400Regular, Inter_700Bold } from '@expo-google-fonts/inter';
+import { useFonts, Roboto_400Regular, Roboto_700Bold } from '@expo-google-fonts/roboto';
 import AppNavigation from './app/src/AppNavigation';
 import CustomSplashScreen from './app/screen/CustomSplashScreen';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -10,8 +10,8 @@ export default function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [initialRoute, setInitialRoute] = useState(null);
   const [fontsLoaded] = useFonts({
-    'Inter-Regular': Inter_400Regular,
-    'Inter-Bold': Inter_700Bold,
+    'Roboto-Regular': Roboto_400Regular,
+    'Roboto-Bold': Roboto_700Bold,
   });
 
   useEffect(() => {
