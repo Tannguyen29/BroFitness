@@ -30,7 +30,7 @@ const PersonalInformationSetup = ({ navigation }) => {
   const handleSubmit = async () => {
     try {
       const token = await AsyncStorage.getItem('userToken');
-      const response = await axios.post('http://192.168.1.55:5000/personal-information-setup', {
+      const response = await axios.post('http://192.168.2.28:5000/personal-information-setup', {
         gender,
         age,
         height,
