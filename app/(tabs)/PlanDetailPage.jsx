@@ -72,12 +72,18 @@ const PlanDetailPage = ({ route }) => {
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView style={styles.scrollViewContainer}>
-        <Text style={styles.title}>{plan.title}</Text>
-        <Text style={styles.subtitle}>Week {week}, Day {day}</Text>
-        <Text style={styles.description}>{plan.description}</Text>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => navigation.goBack()}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+        >
           <Icon name="chevron-left" size={30} color="#FD6300" />
         </TouchableOpacity>
+        <Text style={styles.title}>{plan.title}</Text>
+        <Text style={styles.subtitle}>
+          Week {week}, Day {day}
+        </Text>
+        <Text style={styles.description}>{plan.description}</Text>
         <View style={styles.infoContainer}>
           <View style={styles.infoItem}>
             <Text style={styles.infoLabel}>{currentDay.level}</Text>
@@ -88,50 +94,63 @@ const PlanDetailPage = ({ route }) => {
             <Text style={styles.infoValue}>Time</Text>
           </View>
           <View style={styles.infoItem}>
-            <Text style={styles.infoLabel}>{currentDay.focusArea.join(', ')}</Text>
+            <Text style={styles.infoLabel}>
+              {currentDay.focusArea.join(", ")}
+            </Text>
             <Text style={styles.infoValue}>Focus Area</Text>
           </View>
         </View>
 
         <TouchableOpacity style={styles.settingsButton}>
           <Text style={styles.settingsButtonText}>Workout Settings</Text>
-          <Text style={styles.settingsButtonSubtext}>Sounds, Music, Coach...</Text>
+          <Text style={styles.settingsButtonSubtext}>
+            Sounds, Music, Coach...
+          </Text>
         </TouchableOpacity>
 
-        <Text style={styles.exercisesTitle}>Exercises ({currentDay.exercises.length})</Text>
+        <Text style={styles.exercisesTitle}>
+          Exercises ({currentDay.exercises.length})
+        </Text>
 
         {currentDay.exercises.map((exercise, index) => {
           const details = exerciseDetails[exercise.name];
           return (
             <View key={index} style={styles.exerciseItem}>
               {details && details.gifUrl ? (
-                <Image 
-                  source={{ uri: details.gifUrl }} 
+                <Image
+                  source={{ uri: details.gifUrl }}
                   style={styles.exerciseImage}
                   resizeMode="cover"
                 />
               ) : (
-                <View style={[styles.exerciseImage, { backgroundColor: '#ccc' }]} />
+                <View
+                  style={[styles.exerciseImage, { backgroundColor: "#ccc" }]}
+                />
               )}
               <View style={styles.exerciseInfo}>
                 <Text style={styles.exerciseName}>{exercise.name}</Text>
                 <Text style={styles.exerciseDetails}>
-                  {exercise.duration ? `${exercise.duration} seconds` : `x ${exercise.reps}`}
+                  {exercise.duration
+                    ? `${exercise.duration} seconds`
+                    : `x ${exercise.reps}`}
                 </Text>
               </View>
             </View>
           );
         })}
 
-        <TouchableOpacity 
-          style={styles.startButton} 
-          onPress={() => navigation.navigate('Workout', { 
-            exercises: currentDay.exercises.map(exercise => ({
-              ...exercise,
-              gifUrl: exerciseDetails[exercise.name]?.gifUrl,
-              level: currentDay.level
-            }))})}
-          >
+        <TouchableOpacity
+          style={styles.startButton}
+          onPress={() =>
+            navigation.navigate("Workout", {
+              exercises: currentDay.exercises.map((exercise) => ({
+                ...exercise,
+                gifUrl: exerciseDetails[exercise.name]?.gifUrl,
+                level: currentDay.level,
+              })),
+            })
+          }
+        >
           <Text style={styles.startButtonText}>Start</Text>
         </TouchableOpacity>
       </ScrollView>
@@ -167,15 +186,14 @@ const styles = StyleSheet.create({
   },
   backButton: {
     position: 'absolute',
-    top: 2,
-    zIndex: 1,
+    top: 25,
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
     color: '#FFFFFF',
     marginBottom: 10,
-    marginTop: 40,
+    marginTop: 60,
   },
   subtitle: {
     fontSize: 32,
