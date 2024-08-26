@@ -285,7 +285,7 @@ const PersonalInformationSetup = ({ navigation }) => {
     try {
       const token = await AsyncStorage.getItem("userToken");
       const response = await axios.post(
-        "http://10.22.48.224:5000/personal-information-setup",
+        "http://192.168.1.66:5000/personal-information-setup",
         {
           gender,
           age,
