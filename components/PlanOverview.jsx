@@ -79,6 +79,7 @@ const PlanOverview = ({ plan, navigation }) => {
         <Text style={styles.title}>{plan.title.toUpperCase()}</Text>
         <Text style={styles.subtitle}>{plan.subtitle.toUpperCase()}</Text>
       </ImageBackground>
+
       <View style={styles.content}>
         <View style={styles.progressContainer}>
           <Text style={styles.progressText}>{completedDays} / {totalDays} Days Finished</Text>
@@ -125,7 +126,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#000000',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    marginTop: -20,
+    marginTop: -10,
     padding: 20,
   },
   progressContainer: {

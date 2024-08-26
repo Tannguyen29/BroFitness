@@ -14,6 +14,7 @@ const WorkoutScreen = ({ route }) => {
   const [totalTime, setTotalTime] = useState(0);
   const [tickSound, setTickSound] = useState();
   const [clockTickSound, setClockTickSound] = useState();
+  const [restInterval, setRestInterval] = useState(null);
 
   const currentExercise = exercises[currentExerciseIndex];
 
@@ -51,19 +52,30 @@ const WorkoutScreen = ({ route }) => {
     let interval;
     if (isResting && restTime > 0) {
       interval = setInterval(() => {
-        setRestTime((prevTime) => prevTime - 1);
-        playClockTickSound();
+        setRestTime((prevTime) => {
+          if (prevTime <= 1) {
+            clearInterval(interval);
+            setIsResting(false);
+            if (clockTickSound) {
+              clockTickSound.stopAsync();
+            }
+            if (setCount < currentExercise.sets) {
+              setSetCount(prevCount => prevCount + 1);
+            } else {
+              handleNextExercise();
+            }
+            return 0;
+          }
+          playClockTickSound();
+          return prevTime - 1;
+        });
       }, 1000);
-    } else if (isResting && restTime === 0) {
-      setIsResting(false);
-      if (setCount < currentExercise.sets) {
-        setSetCount(setCount + 1);
-      } else {
-        handleNextExercise();
-      }
+      setRestInterval(interval);
     }
-    return () => clearInterval(interval);
-  }, [isResting, restTime]);
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [isResting, restTime, setCount, currentExercise.sets]);
 
   const playTickSound = async () => {
     try {
@@ -86,10 +98,14 @@ const WorkoutScreen = ({ route }) => {
       if (clockTickSound) {
         await clockTickSound.stopAsync();
       }
+      if (restInterval) {
+        clearInterval(restInterval);
+        setRestInterval(null);
+      }
       await playTickSound();
       setIsResting(false);
       if (setCount < currentExercise.sets) {
-        setSetCount(setCount + 1);
+        setSetCount(prevCount => prevCount + 1);
       } else {
         handleNextExercise();
       }
@@ -104,6 +120,7 @@ const WorkoutScreen = ({ route }) => {
     if (currentExerciseIndex < exercises.length - 1) {
       setCurrentExerciseIndex(currentExerciseIndex + 1);
       setSetCount(1);
+      setIsResting(false);
     } else {
       navigation.navigate('WorkoutCompleted', {
         exercises: exercises,
