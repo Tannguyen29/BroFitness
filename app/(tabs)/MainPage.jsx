@@ -9,7 +9,8 @@ import {
   TouchableOpacity,
   Dimensions,
   ImageBackground,
-  Image
+  Image,
+  StatusBar
 } from "react-native";
 import { Avatar } from "@rneui/themed";
 import { Notification } from "iconsax-react-native";
@@ -265,6 +266,7 @@ const MainPage = () => {
           </View>
         </View>
       </ScrollView>
+      <StatusBar barStyle="light-content" backgroundColor="#1c1c1e" />
     </SafeAreaView>
   );
 };

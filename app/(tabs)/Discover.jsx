@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { StyleSheet, Text, SafeAreaView, ScrollView, View, TouchableOpacity, TextInput } from "react-native";
+import { StyleSheet, Text, SafeAreaView, ScrollView, View, TouchableOpacity, TextInput, StatusBar } from "react-native";
 import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
 import { faMagnifyingGlass, faClock } from "@fortawesome/free-solid-svg-icons";
 
@@ -11,6 +11,7 @@ const Discover = () => {
 
   return (
     <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="light-content" backgroundColor="#000" />
       <ScrollView contentContainerStyle={styles.scrollViewContainer}>
         <View style={styles.headerContainer}>
           {tabs.map((tab) => (
