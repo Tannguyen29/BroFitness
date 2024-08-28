@@ -283,6 +283,7 @@ const PersonalInformationSetup = ({ navigation }) => {
 
   const handleSubmit = async () => {
     try {
+
       const token = await AsyncStorage.getItem("userToken");
       const response = await axios.post(
         "http://192.168.1.66:5000/personal-information-setup",
