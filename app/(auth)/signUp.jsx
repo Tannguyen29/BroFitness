@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import axios from 'axios';
 import logo from "../../assets/image/gymLogo.png";
-import { TextInput } from 'react-native-paper';
+
 import CustomButton from "../../components/CustomButton";
 import Icon from 'react-native-vector-icons/Ionicons'; // Import Icon
 
