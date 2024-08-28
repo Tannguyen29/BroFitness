@@ -23,7 +23,7 @@ const PlanOverview = ({ plan, navigation }) => {
       weekComponents.push(
         <View key={`week-${week}`} style={styles.weekContainer}>
           <View style={styles.weekHeader}>
-            <Icon name="flash" type="ionicon" color="#0080FF" size={24} />
+            <Icon name="flash" type="ionicon" color="#FD6300" size={24} />
             <Text style={styles.weekTitle}>WEEK {week}</Text>
             <Text style={styles.weekProgress}>{currentDay}/{daysPerWeek}</Text>
           </View>
@@ -74,11 +74,12 @@ const PlanOverview = ({ plan, navigation }) => {
         style={styles.header}
       >
         <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-          <Icon name="chevron-left" size={30} color="white" />
+          <Icon name="chevron-left" size={30} color="#FD6300" />
         </TouchableOpacity>
         <Text style={styles.title}>{plan.title.toUpperCase()}</Text>
         <Text style={styles.subtitle}>{plan.subtitle.toUpperCase()}</Text>
       </ImageBackground>
+
       <View style={styles.content}>
         <View style={styles.progressContainer}>
           <Text style={styles.progressText}>{completedDays} / {totalDays} Days Finished</Text>
@@ -125,7 +126,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#000000',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    marginTop: -20,
+    marginTop: -10,
     padding: 20,
   },
   progressContainer: {
@@ -143,7 +144,7 @@ const styles = StyleSheet.create({
   },
   progressFill: {
     height: '100%',
-    backgroundColor: '#0080FF',
+    backgroundColor: '#FD6300s',
     borderRadius: 3,
   },
   progressPercentage: {
@@ -193,10 +194,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   completedDay: {
-    backgroundColor: '#0080FF',
+    backgroundColor: '#FD6300',
   },
   currentDay: {
-    backgroundColor: '#0080FF',
+    backgroundColor: '#FD6300',
   },
   dayText: {
     color: '#999999',
@@ -212,7 +213,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 2,
   },
   startButton: {
-    backgroundColor: '#0080FF',
+    backgroundColor: '#FD6300',
     padding: 12,
     borderRadius: 25,
     justifyContent: 'center',

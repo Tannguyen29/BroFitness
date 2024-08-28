@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Image, SafeAreaView, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Icon } from "@rneui/themed";
+import { Audio } from 'expo-av';
 
 const WorkoutScreen = ({ route }) => {
   const navigation = useNavigation();
@@ -11,6 +12,9 @@ const WorkoutScreen = ({ route }) => {
   const [isResting, setIsResting] = useState(false);
   const [restTime, setRestTime] = useState(0);
   const [totalTime, setTotalTime] = useState(0);
+  const [tickSound, setTickSound] = useState();
+  const [clockTickSound, setClockTickSound] = useState();
+  const [restInterval, setRestInterval] = useState(null);
 
   const currentExercise = exercises[currentExerciseIndex];
 
@@ -23,33 +27,92 @@ const WorkoutScreen = ({ route }) => {
   }, []);
 
   useEffect(() => {
+    async function loadSounds() {
+      const tickAudio = new Audio.Sound();
+      const clockTickAudio = new Audio.Sound();
+      try {
+        await tickAudio.loadAsync(require('../../assets/tick.mp3'));
+        await clockTickAudio.loadAsync(require('../../assets/clock_tick.mp3'));
+        setTickSound(tickAudio);
+        setClockTickSound(clockTickAudio);
+      } catch (error) {
+        console.error('Không thể tải âm thanh:', error);
+      }
+    }
+
+    loadSounds();
+
+    return () => {
+      if (tickSound) tickSound.unloadAsync();
+      if (clockTickSound) clockTickSound.unloadAsync();
+    };
+  }, []);
+
+  useEffect(() => {
     let interval;
     if (isResting && restTime > 0) {
       interval = setInterval(() => {
-        setRestTime((prevTime) => prevTime - 1);
+        setRestTime((prevTime) => {
+          if (prevTime <= 1) {
+            clearInterval(interval);
+            setIsResting(false);
+            if (clockTickSound) {
+              clockTickSound.stopAsync();
+            }
+            if (setCount < currentExercise.sets) {
+              setSetCount(prevCount => prevCount + 1);
+            } else {
+              handleNextExercise();
+            }
+            return 0;
+          }
+          playClockTickSound();
+          return prevTime - 1;
+        });
       }, 1000);
-    } else if (isResting && restTime === 0) {
+      setRestInterval(interval);
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [isResting, restTime, setCount, currentExercise.sets]);
+
+  const playTickSound = async () => {
+    try {
+      await tickSound.replayAsync();
+    } catch (error) {
+      console.error('Sound Error tick:', error);
+    }
+  };
+  
+  const playClockTickSound = async () => {
+    try {
+      await clockTickSound.replayAsync();
+    } catch (error) {
+      console.error('Sound Error clock tick:', error);
+    }
+  };
+
+  const handleComplete = async () => {
+    if (isResting) {
+      if (clockTickSound) {
+        await clockTickSound.stopAsync();
+      }
+      if (restInterval) {
+        clearInterval(restInterval);
+        setRestInterval(null);
+      }
+      await playTickSound();
       setIsResting(false);
       if (setCount < currentExercise.sets) {
-        setSetCount(setCount + 1);
+        setSetCount(prevCount => prevCount + 1);
       } else {
         handleNextExercise();
       }
-    }
-    return () => clearInterval(interval);
-  }, [isResting, restTime]);
-
-  const handleComplete = () => {
-    if (!isResting) {
+    } else {
+      await playTickSound();
       setIsResting(true);
       setRestTime(calculateRestTime(currentExercise.level));
-    } else {
-      setIsResting(false);
-      if (setCount < currentExercise.sets) {
-        setSetCount(setCount + 1);
-      } else {
-        handleNextExercise();
-      }
     }
   };
 
@@ -57,6 +120,7 @@ const WorkoutScreen = ({ route }) => {
     if (currentExerciseIndex < exercises.length - 1) {
       setCurrentExerciseIndex(currentExerciseIndex + 1);
       setSetCount(1);
+      setIsResting(false);
     } else {
       navigation.navigate('WorkoutCompleted', {
         exercises: exercises,
@@ -136,9 +200,6 @@ const WorkoutScreen = ({ route }) => {
           )}
         </View>
         <View style={styles.controlsContainer}>
-          <TouchableOpacity>
-            <Icon name="stepbackward" type="antdesign" size={30} color="#FFF" />
-          </TouchableOpacity>
           <TouchableOpacity 
             style={[styles.completeButton, isResting && styles.skipButton]} 
             onPress={handleComplete}
@@ -148,9 +209,6 @@ const WorkoutScreen = ({ route }) => {
             ) : (
               <Icon name="check" type="feather" size={30} color="#FFF" />
             )}
-          </TouchableOpacity>
-          <TouchableOpacity>
-            <Icon name="stepforward" type="antdesign" size={30} color="#FFF" />
           </TouchableOpacity>
         </View>
       </View>
@@ -194,7 +252,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 2,
   },
   progressSegmentCompleted: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#FD6300',
   },
   exerciseImage: {
     width: '100%',
@@ -207,7 +265,9 @@ const styles = StyleSheet.create({
     right: 0,
     backgroundColor: 'black',
     padding: 50,
-    paddingTop: 60
+    paddingTop: 60,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
   },
   exerciseInfo: {
     alignItems: 'center',
@@ -215,7 +275,7 @@ const styles = StyleSheet.create({
   },
   exerciseName: {
     color: '#FFFFFF',
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: 'bold',
     bottom: 20
   },
@@ -230,20 +290,18 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   controlsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
   },
   completeButton: {
-    backgroundColor: '#007AFF',
+    backgroundColor: '#FD6300',
     borderRadius: 30,
-    width: 120,
+    width: 140,
     height: 60,
     justifyContent: 'center',
     alignItems: 'center',
   },
   skipButton: {
-    width: 120,
+    width: 140,
   },
   skipButtonText: {
     color: '#FFFFFF',

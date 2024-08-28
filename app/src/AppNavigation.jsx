@@ -18,6 +18,7 @@ import PlanDetail from "../(tabs)/PlanDetailPage";
 import PlanOverview from '../../components/PlanOverview';
 import WorkoutScreen from '../screen/WorkoutScreen';
 import WorkoutCompletedScreen from '../screen/WorkoutCompletedScreen';
+import AllPlan from '../screen/AllPlans'
 
 const API_BASE_URL = "http://192.168.1.66:5000";
 
@@ -73,6 +74,8 @@ const AppNavigation = ({ initialRoute }) => {
         <Stack.Screen name="PlanDetail" component={PlanDetail} options={{ headerShown: false }}/>
         <Stack.Screen name="Workout" component={WorkoutScreen} options={{ headerShown: false }}/>
         <Stack.Screen name="WorkoutCompleted" component={WorkoutCompletedScreen} options={{ headerShown: false }}/>
+        <Stack.Screen name="AllPlans" component={AllPlan} options={{ headerShown: false }}/>
+
       </Stack.Navigator>
     </NavigationContainer>
   );

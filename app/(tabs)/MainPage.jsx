@@ -9,7 +9,8 @@ import {
   TouchableOpacity,
   Dimensions,
   ImageBackground,
-  Image
+  Image,
+  StatusBar
 } from "react-native";
 import { Avatar } from "@rneui/themed";
 import { Notification } from "iconsax-react-native";
@@ -28,16 +29,28 @@ const API_BASE_URL = "http://192.168.1.66:5000";
 
 const MainPage = () => {
   const [userName, setUserName] = useState('');
-  const [banners, setBanners] = useState([
-    { id: '1', image: require('../../assets/banner/banner1.jpg') },
-    { id: '2', image: require('../../assets/banner/banner2.jpg') },
-    { id: '3', image: require('../../assets/banner/banner3.jpg') },
-  ]);
+  const [banners, setBanners] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
   const flatListRef = useRef(null);
   const [plans, setPlans] = useState([]);
   const navigation = useNavigation();
+  const handleExploreAllPlans = () => {
+    navigation.navigate('AllPlans'); 
+  };
+
+  const fetchBanners = useCallback(async () => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/banners`);
+      setBanners(response.data);
+    } catch (error) {
+      console.error("Error fetching banners:", error);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchBanners();
+  }, [fetchBanners]);
 
   useEffect(() => {
     const loadUserInfo = async () => {
@@ -90,7 +103,7 @@ const MainPage = () => {
 
   const renderBannerItem = ({ item }) => (
     <View style={styles.bannerItemContainer}>
-      <Image source={item.image} style={styles.bannerImage} />
+      <Image source={{ uri: item.imageUrl }} style={styles.bannerImage} />
     </View>
   );
 
@@ -166,7 +179,7 @@ const MainPage = () => {
             ref={flatListRef}
             data={banners}
             renderItem={renderBannerItem}
-            keyExtractor={(item) => item.id}
+            keyExtractor={(item) => item._id}
             horizontal
             showsHorizontalScrollIndicator={false}
             pagingEnabled
@@ -189,12 +202,12 @@ const MainPage = () => {
             snapToAlignment="center"
             decelerationRate="fast"
           />
-          <TouchableOpacity style={styles.Explore}>
+          <TouchableOpacity style={styles.exploreButton} onPress={handleExploreAllPlans}>
             <FontAwesomeIcon
               icon={faArrowUpRightFromSquare}
-              style={styles.ExploreIcon}
+              style={styles.exploreIcon}
             />
-            <Text style={styles.ExploreText}>Explore All Plans</Text>
+            <Text style={styles.exploreText}>Explore All Plans</Text>
           </TouchableOpacity>
         </View>
         <View>
@@ -265,6 +278,7 @@ const MainPage = () => {
           </View>
         </View>
       </ScrollView>
+      <StatusBar barStyle="light-content" backgroundColor="#1c1c1e" />
     </SafeAreaView>
   );
 };
@@ -424,20 +438,20 @@ const styles = StyleSheet.create({
     left: 30,
     height: 34
   },
-  Explore:{
+  exploreButton:{
     backgroundColor: 'black',
     borderRadius: 15,
     padding: 18,
     marginTop: 15,
     marginBottom: 10
   },
-  ExploreText:{
+  exploreText:{
     fontSize: 13,
     fontWeight: '500',
     color: "#f0784b",
     textAlign: "center",
   },
-  ExploreIcon: {
+  exploreIcon: {
     color: '#f0784b', 
     marginRight: 10, 
     position: 'absolute',
