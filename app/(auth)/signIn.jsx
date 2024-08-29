@@ -18,6 +18,8 @@ const SignIn = ({ navigation }) => {
   const [password, setPassword] = useState("");
   const [error, setError] = useState(null);
   const [rememberMe, setRememberMe] = useState(false);
+  const [isEmailFocused, setIsEmailFocused] = useState(false);
+  const [isPasswordFocused, setIsPasswordFocused] = useState(false);
 
   useEffect(() => {
     const checkLoginStatus = async () => {
@@ -97,6 +99,19 @@ const SignIn = ({ navigation }) => {
     }
   };
 
+  const getInputStyle = (isFocused, hasValue) => {
+    if (isFocused || hasValue) {
+      return {
+        backgroundColor: 'black',
+        color: 'white',
+      };
+    }
+    return {
+      backgroundColor: '#38393A',
+      color: '#C7D1D9',
+    };
+  };
+
   return (
     <SafeAreaView className="bg-black flex-1">
       <ScrollView contentContainerStyle="flex-grow">
@@ -117,15 +132,21 @@ const SignIn = ({ navigation }) => {
             autoCapitalize="none"
             keyboardType="email-address"
             textColor='white'
-            outlineColor='white'
-            style={{ width: '85%', marginBottom: 20, backgroundColor: 'black'}}
+            onFocus={() => setIsEmailFocused(true)}
+            onBlur={() => setIsEmailFocused(false)}
+            style={[
+              { width: '85%', marginBottom: 20 },
+              getInputStyle(isEmailFocused, email.length > 0)
+            ]}
             outlineStyle={{
-              borderRadius: 15,
+              borderRadius: 20,
             }}
+            outlineColor={isEmailFocused || email.length > 0 ? 'white' : 'transparent'}
+            activeOutlineColor='#FD6300'
             theme={{
               colors: {
                 primary: '#FD6300',
-                onSurfaceVariant: 'white',
+                onSurfaceVariant: isEmailFocused || email.length > 0 ? 'white' : '#C7D1D9',
               },
             }}
           />
@@ -134,18 +155,23 @@ const SignIn = ({ navigation }) => {
             value={password}
             onChangeText={(text) => setPassword(text)}
             mode="outlined"
-            autoCapitalize="none"
-            keyboardType="email-address"
-            textColor='white'
-            outlineColor='white'
-            style={{ width: '85%', marginBottom: 10, backgroundColor: 'black'}}
+            secureTextEntry
+            onFocus={() => setIsPasswordFocused(true)}
+            onBlur={() => setIsPasswordFocused(false)}
+            style={[
+              { width: '85%', marginBottom: 10 },
+              getInputStyle(isPasswordFocused, password.length > 0)
+            ]}
             outlineStyle={{
-              borderRadius: 15,
+              borderRadius: 20,
             }}
+            outlineColor={isPasswordFocused || password.length > 0 ? 'white' : 'transparent'}
+            activeOutlineColor='#FD6300'
+            textColor='white'
             theme={{
               colors: {
                 primary: '#FD6300',
-                onSurfaceVariant: 'white',
+                onSurfaceVariant: isPasswordFocused || password.length > 0 ? 'white' : '#C7D1D9',
               },
             }}
           />

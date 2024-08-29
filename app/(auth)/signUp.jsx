@@ -17,6 +17,23 @@ const SignUp = ({ navigation }) => {
   const [confirmPasswordError, setConfirmPasswordError] = useState("");
   const [agree, setAgree] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
+  const [isNameFocused, setIsNameFocused] = useState(false);
+  const [isEmailFocused, setIsEmailFocused] = useState(false);
+  const [isPasswordFocused, setIsPasswordFocused] = useState(false);
+  const [isConfirmPasswordFocused, setIsConfirmPasswordFocused] = useState(false);
+
+  const getInputStyle = (isFocused, hasValue) => {
+    if (isFocused || hasValue) {
+      return {
+        backgroundColor: 'black',
+        color: 'white',
+      };
+    }
+    return {
+      backgroundColor: '#38393A',
+      color: '#C7D1D9',
+    };
+  };
 
   const handleSignUp = async () => {
     setPasswordError("");
@@ -115,15 +132,21 @@ const SignUp = ({ navigation }) => {
             mode="outlined"
             autoCapitalize="words"
             textColor='white'
-            outlineColor='white'
-            style={{ width: '85%', marginBottom: 20, backgroundColor: 'black'}}
+            onFocus={() => setIsNameFocused(true)}
+            onBlur={() => setIsNameFocused(false)}
+            style={[
+              { width: '85%', marginBottom: 20 },
+              getInputStyle(isNameFocused, name.length > 0)
+            ]}
             outlineStyle={{
-              borderRadius: 15,
+              borderRadius: 20,
             }}
+            outlineColor={isNameFocused || name.length > 0 ? 'white' : 'transparent'}
+            activeOutlineColor='#FD6300'
             theme={{
               colors: {
                 primary: '#FD6300',
-                onSurfaceVariant: 'white',
+                onSurfaceVariant: isNameFocused || name.length > 0 ? 'white' : '#C7D1D9',
               },
             }}
           />
@@ -136,15 +159,21 @@ const SignUp = ({ navigation }) => {
             autoCapitalize="none"
             keyboardType="email-address"
             textColor='white'
-            outlineColor='white'
-            style={{ width: '85%', marginBottom: 20, backgroundColor: 'black'}}
+            onFocus={() => setIsEmailFocused(true)}
+            onBlur={() => setIsEmailFocused(false)}
+            style={[
+              { width: '85%', marginBottom: 20 },
+              getInputStyle(isEmailFocused, email.length > 0)
+            ]}
             outlineStyle={{
-              borderRadius: 15,
+              borderRadius: 20,
             }}
+            outlineColor={isEmailFocused || email.length > 0 ? 'white' : 'transparent'}
+            activeOutlineColor='#FD6300'
             theme={{
               colors: {
                 primary: '#FD6300',
-                onSurfaceVariant: 'white',
+                onSurfaceVariant: isEmailFocused || email.length > 0 ? 'white' : '#C7D1D9',
               },
             }}
           />
@@ -156,15 +185,21 @@ const SignUp = ({ navigation }) => {
             mode="outlined"
             secureTextEntry={true}
             textColor='white'
-            outlineColor='white'
-            style={{ width: '85%', marginBottom: 20, backgroundColor: 'black'}}
+            onFocus={() => setIsPasswordFocused(true)}
+            onBlur={() => setIsPasswordFocused(false)}
+            style={[
+              { width: '85%', marginBottom: 20 },
+              getInputStyle(isPasswordFocused, password.length > 0)
+            ]}
             outlineStyle={{
-              borderRadius: 15,
+              borderRadius: 20,
             }}
+            outlineColor={isPasswordFocused || password.length > 0 ? 'white' : 'transparent'}
+            activeOutlineColor='#FD6300'
             theme={{
               colors: {
                 primary: '#FD6300',
-                onSurfaceVariant: 'white',
+                onSurfaceVariant: isPasswordFocused || password.length > 0 ? 'white' : '#C7D1D9',
               },
             }}
           />
@@ -178,15 +213,21 @@ const SignUp = ({ navigation }) => {
             mode="outlined"
             secureTextEntry={true}
             textColor='white'
-            outlineColor='white'
-            style={{ width: '85%', marginBottom: 10, backgroundColor: 'black', marginTop: 10}}
+            onFocus={() => setIsConfirmPasswordFocused(true)}
+            onBlur={() => setIsConfirmPasswordFocused(false)}
+            style={[
+              { width: '85%', marginBottom: 10, marginTop: 10 },
+              getInputStyle(isConfirmPasswordFocused, confirmPassword.length > 0)
+            ]}
             outlineStyle={{
-              borderRadius: 15,
+              borderRadius: 20,
             }}
+            outlineColor={isConfirmPasswordFocused || confirmPassword.length > 0 ? 'white' : 'transparent'}
+            activeOutlineColor='#FD6300'
             theme={{
               colors: {
                 primary: '#FD6300',
-                onSurfaceVariant: 'white',
+                onSurfaceVariant: isConfirmPasswordFocused || confirmPassword.length > 0 ? 'white' : '#C7D1D9',
               },
             }}
           />
@@ -237,7 +278,7 @@ const SignUp = ({ navigation }) => {
           </View>
           <CustomButton
             title="Sign Up"
-            containerStyle="mt-5 w-4/5 bg-orange-500 items-center justify-center rounded-3xl"
+            containerStyle="mt-5 w-[85%] bg-orange-500 items-center justify-center rounded-3xl"
             handlePress={handleSignUp}
           />
           {error && <Text className="text-red-500 mt-4">{error}</Text>}
