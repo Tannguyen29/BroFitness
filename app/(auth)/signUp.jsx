@@ -1,12 +1,11 @@
-import { Text,TextInput, View, ScrollView, Image, TouchableOpacity, Modal } from "react-native";
+import { Text, View, ScrollView, Image, TouchableOpacity, Modal } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import React, { useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import axios from 'axios';
 import logo from "../../assets/image/gymLogo.png";
-
+import { TextInput } from 'react-native-paper';
 import CustomButton from "../../components/CustomButton";
-import Icon from 'react-native-vector-icons/Ionicons'; // Import Icon
 
 const SignUp = ({ navigation }) => {
   const [name, setName] = useState("");
@@ -18,7 +17,6 @@ const SignUp = ({ navigation }) => {
   const [confirmPasswordError, setConfirmPasswordError] = useState("");
   const [agree, setAgree] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
-
   const [isNameFocused, setIsNameFocused] = useState(false);
   const [isEmailFocused, setIsEmailFocused] = useState(false);
   const [isPasswordFocused, setIsPasswordFocused] = useState(false);
@@ -36,9 +34,6 @@ const SignUp = ({ navigation }) => {
       color: '#C7D1D9',
     };
   };
-
-  const [isPasswordVisible, setPasswordVisible] = useState(false); // State for password visibility
-  const [isConfirmPasswordVisible, setConfirmPasswordVisible] = useState(false); // State for confirm password visib
 
   const handleSignUp = async () => {
     setPasswordError("");
@@ -70,9 +65,7 @@ const SignUp = ({ navigation }) => {
     }
 
     try {
-
       await axios.post('http://192.168.1.66:5000/signup', { name, email, password });
-
       navigation.navigate("OtpInput", { email });
     } catch (error) {
       setError(error.response ? error.response.data : 'Error signing up');
@@ -86,11 +79,11 @@ const SignUp = ({ navigation }) => {
       { label: 'At least a number', regex: /\d/ },
       { label: 'Uppercase character', regex: /[A-Z]/ },
     ];
-
+  
     const getStrength = () => {
       return requirements.filter(req => req.regex.test(password)).length / requirements.length;
     };
-
+  
     return (
       <View className="w-4/5 mt-2">
         <View className="h-1 bg-gray-300 rounded-full mb-3 mt-2">
@@ -117,14 +110,6 @@ const SignUp = ({ navigation }) => {
         </View>
       </View>
     );
-  };
-
-  const togglePasswordVisible = () => {
-    setPasswordVisible(!isPasswordVisible);
-  };
-
-  const toggleConfirmPasswordVisible = () => {
-    setConfirmPasswordVisible(!isConfirmPasswordVisible);
   };
 
   return (
@@ -193,7 +178,6 @@ const SignUp = ({ navigation }) => {
             }}
           />
 
-
           <TextInput
             label="Password"
             value={password}
@@ -219,23 +203,8 @@ const SignUp = ({ navigation }) => {
               },
             }}
           />
-
           {passwordError && <Text className="text-red-500 mt-1 w-4/5">{passwordError}</Text>}
           <PasswordRequirements password={password} />
-          <View style={styles.inputContainer}>
-            <TextInput
-              style={styles.input}
-              placeholder="Confirm password"
-              placeholderTextColor="#888"
-              value={confirmPassword}
-              onChangeText={setConfirmPassword}
-              secureTextEntry={!isConfirmPasswordVisible}
-            />
-            <TouchableOpacity onPress={toggleConfirmPasswordVisible} style={styles.icon}>
-              <Icon name={isConfirmPasswordVisible ? 'eye-off' : 'eye'} size={20} color="white"/>
-            </TouchableOpacity>
-          </View>
-
 
           <TextInput
             label="Confirm Password"
@@ -262,7 +231,6 @@ const SignUp = ({ navigation }) => {
               },
             }}
           />
-
           {confirmPasswordError && <Text className="text-red-500 mt-1 w-4/5">{confirmPasswordError}</Text>}
           <View
             style={{
@@ -336,67 +304,83 @@ const SignUp = ({ navigation }) => {
         animationType="slide"
         transparent={true}
         visible={modalVisible}
-        onRequestClose={() => {
-          setModalVisible(!modalVisible);
-        }}
+        onRequestClose={() => setModalVisible(false)}
       >
-        <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <View
+          style={{
+            flex: 1,
+            justifyContent: "center",
+            alignItems: "center",
+            backgroundColor: "rgba(0,0,0,0.75)",
+          }}
+        >
           <View
             style={{
-              backgroundColor: "white",
+              margin: 20,
               padding: 20,
+              backgroundColor: "white",
               borderRadius: 10,
-              shadowColor: "#000",
-              shadowOffset: {
-                width: 0,
-                height: 2,
-              },
-              shadowOpacity: 0.25,
-              shadowRadius: 4,
-              elevation: 5,
-              width: '90%',
-              maxHeight: '80%'
             }}
           >
+            <Text
+              style={{
+                color: "black",
+                fontSize: 18,
+                fontWeight: "bold",
+                marginBottom: 10,
+              }}
+            >
+              Terms and Conditions
+            </Text>
             <ScrollView>
-              <Text style={{ fontSize: 16, fontWeight: 'bold', marginBottom: 10 }}>Terms and Conditions</Text>
-              <Text style={{ marginBottom: 10 }}>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur sit amet ligula id mi cursus gravida. Nulla facilisi. Etiam ut lectus non arcu interdum cursus nec a turpis. Integer condimentum dolor vel nisl sodales convallis. Ut et erat sit amet nulla accumsan hendrerit. Nullam euismod augue ut massa condimentum tincidunt.</Text>
-              <Text style={{ marginBottom: 10 }}>Praesent vehicula metus nec nulla auctor, nec interdum nunc fermentum. Phasellus sed nisi non eros laoreet tempus. In congue vel ligula ut tempor. Duis ut nisi non augue vehicula volutpat sit amet ac enim. Suspendisse euismod efficitur velit, et egestas felis ultricies ut.</Text>
-              <Text style={{ marginBottom: 10 }}>Vestibulum quis risus non nunc commodo tincidunt. Proin ullamcorper, metus non ultricies feugiat, libero mi vestibulum est, sed facilisis sem lorem at urna. Curabitur ac tincidunt leo. Donec hendrerit tempor nulla, sed consectetur sem cursus id. Ut nec efficitur libero, ut pharetra dui.</Text>
+              <Text style={{ color: "black" }}>
+                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer
+                nec odio. Praesent libero. Sed cursus ante dapibus diam. Sed
+                nisi. Nulla quis sem at nibh elementum imperdiet. Duis sagittis
+                ipsum. Praesent mauris. Fusce nec tellus sed augue semper porta.
+                Mauris massa. Vestibulum lacinia arcu eget nulla. Class aptent
+                taciti sociosqu ad litora torquent per conubia nostra, per
+                inceptos himenaeos. Curabitur sodales ligula in libero. Sed
+                dignissim lacinia nunc. Curabitur tortor. Pellentesque nibh.
+                Aenean quam. In scelerisque sem at dolor. Maecenas mattis. Sed
+                convallis tristique sem. Proin ut ligula vel nunc egestas
+                porttitor. Morbi lectus risus, iaculis vel, suscipit quis,
+                luctus non, massa. Fusce ac turpis quis ligula lacinia aliquet.
+                Mauris ipsum. Nulla metus metus, ullamcorper vel, tincidunt sed,
+                euismod in, nibh. Quisque volutpat condimentum velit. Class
+                aptent taciti sociosqu ad litora torquent per conubia nostra,
+                per inceptos himenaeos. Nam nec ante. Sed lacinia, urna non
+                tincidunt mattis, tortor neque adipiscing diam, a cursus ipsum
+                ante quis turpis. Nulla facilisi. Ut fringilla. Suspendisse
+                potenti. Nunc feugiat mi a tellus consequat imperdiet.
+                Vestibulum sapien. Proin quam. Etiam ultrices. Suspendisse in
+                justo eu magna luctus suscipit. Sed lectus. Integer euismod
+                lacus luctus magna. Quisque cursus, metus vitae pharetra auctor,
+                sem massa mattis sem, at interdum magna augue eget diam.
+                Vestibulum ante ipsum primis in faucibus orci luctus et ultrices
+                posuere cubilia Curae; Morbi lacinia molestie dui. Praesent
+                blandit dolor. Sed non quam. In vel mi sit amet augue congue
+                elementum. Morbi in ipsum sit amet pede facilisis laoreet. Donec
+                lacus nunc, viverra nec.
+              </Text>
             </ScrollView>
             <TouchableOpacity
-              onPress={() => setModalVisible(!modalVisible)}
-              style={{ marginTop: 10, alignSelf: 'center', padding: 10, backgroundColor: '#FD6300', borderRadius: 5 }}
+              onPress={() => setModalVisible(false)}
+              style={{
+                marginTop: 10,
+                padding: 10,
+                backgroundColor: "#FD6300",
+                borderRadius: 10,
+                alignItems: "center",
+              }}
             >
-              <Text style={{ color: 'white', fontWeight: 'bold' }}>Close</Text>
+              <Text style={{ color: "white" }}>Close</Text>
             </TouchableOpacity>
           </View>
         </View>
       </Modal>
     </SafeAreaView>
   );
-};
-
-const styles = {
-  inputContainer: {
-    width: '80%',
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#888',
-    borderRadius: 15,
-    paddingHorizontal: 10,
-    marginTop: 15,
-    backgroundColor:'#2C2C2E',
-  },
-  input: {
-    flex: 1,
-    color: 'white',
-    paddingVertical: 10,
-  },
-  icon: {
-    paddingHorizontal: 10,
-  },
 };
 
 export default SignUp;
