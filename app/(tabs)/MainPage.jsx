@@ -25,7 +25,7 @@ const itemWidth = screenWidth * 0.95;
 const itemHeight = 250;
 const bannerHeight = 150;
 
-const API_BASE_URL = "http://192.168.1.66:5000";
+const API_BASE_URL = "http://192.168.2.28:5000";
 
 const MainPage = () => {
   const [userName, setUserName] = useState('');
