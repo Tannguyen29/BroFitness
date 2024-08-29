@@ -99,7 +99,7 @@ const ResetPassword = ({ route, navigation }) => {
           />
           <TouchableOpacity onPress={togglePasswordVisible} style={styles.icon}>
             <Icon name={isPasswordVisible ? 'eye-off' : 'eye'} size={20} color="white"/>
-          </TouchableOpacity>
+         </TouchableOpacity>
         </View>
         {passwordError && <Text className="text-red-500 mt-1 w-4/5">{passwordError}</Text>}
         <PasswordRequirements newPassword={newPassword} />
