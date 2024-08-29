@@ -76,7 +76,7 @@ const SignIn = ({ navigation }) => {
 
   const handleSignIn = async () => {
     try {
-      const response = await axios.post('http://192.168.1.66:5000/signin', { email, password });
+      const response = await axios.post('http://192.168.2.28:5000/signin', { email, password });
       const { token, name, personalInfoCompleted } = response.data;
   
       await saveUserInfo(token, name || email, personalInfoCompleted);

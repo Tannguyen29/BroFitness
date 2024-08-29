@@ -20,7 +20,7 @@ import WorkoutScreen from '../screen/WorkoutScreen';
 import WorkoutCompletedScreen from '../screen/WorkoutCompletedScreen';
 import AllPlan from '../screen/AllPlans'
 
-const API_BASE_URL = "http://192.168.1.66:5000";
+const API_BASE_URL = "http://192.168.2.28:5000";
 
 const Stack = createNativeStackNavigator();
 
