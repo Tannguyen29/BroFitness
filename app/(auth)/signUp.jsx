@@ -18,8 +18,27 @@ const SignUp = ({ navigation }) => {
   const [confirmPasswordError, setConfirmPasswordError] = useState("");
   const [agree, setAgree] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
+
+  const [isNameFocused, setIsNameFocused] = useState(false);
+  const [isEmailFocused, setIsEmailFocused] = useState(false);
+  const [isPasswordFocused, setIsPasswordFocused] = useState(false);
+  const [isConfirmPasswordFocused, setIsConfirmPasswordFocused] = useState(false);
+
+  const getInputStyle = (isFocused, hasValue) => {
+    if (isFocused || hasValue) {
+      return {
+        backgroundColor: 'black',
+        color: 'white',
+      };
+    }
+    return {
+      backgroundColor: '#38393A',
+      color: '#C7D1D9',
+    };
+  };
+
   const [isPasswordVisible, setPasswordVisible] = useState(false); // State for password visibility
-  const [isConfirmPasswordVisible, setConfirmPasswordVisible] = useState(false); // State for confirm password visibility
+  const [isConfirmPasswordVisible, setConfirmPasswordVisible] = useState(false); // State for confirm password visib
 
   const handleSignUp = async () => {
     setPasswordError("");
@@ -128,15 +147,21 @@ const SignUp = ({ navigation }) => {
             mode="outlined"
             autoCapitalize="words"
             textColor='white'
-            outlineColor='white'
-            style={{ width: '85%', marginBottom: 20, backgroundColor: 'black'}}
+            onFocus={() => setIsNameFocused(true)}
+            onBlur={() => setIsNameFocused(false)}
+            style={[
+              { width: '85%', marginBottom: 20 },
+              getInputStyle(isNameFocused, name.length > 0)
+            ]}
             outlineStyle={{
-              borderRadius: 15,
+              borderRadius: 20,
             }}
+            outlineColor={isNameFocused || name.length > 0 ? 'white' : 'transparent'}
+            activeOutlineColor='#FD6300'
             theme={{
               colors: {
                 primary: '#FD6300',
-                onSurfaceVariant: 'white',
+                onSurfaceVariant: isNameFocused || name.length > 0 ? 'white' : '#C7D1D9',
               },
             }}
           />
@@ -149,31 +174,52 @@ const SignUp = ({ navigation }) => {
             autoCapitalize="none"
             keyboardType="email-address"
             textColor='white'
-            outlineColor='white'
-            style={{ width: '85%', marginBottom: 20, backgroundColor: 'black'}}
+            onFocus={() => setIsEmailFocused(true)}
+            onBlur={() => setIsEmailFocused(false)}
+            style={[
+              { width: '85%', marginBottom: 20 },
+              getInputStyle(isEmailFocused, email.length > 0)
+            ]}
             outlineStyle={{
-              borderRadius: 15,
+              borderRadius: 20,
             }}
+            outlineColor={isEmailFocused || email.length > 0 ? 'white' : 'transparent'}
+            activeOutlineColor='#FD6300'
             theme={{
               colors: {
                 primary: '#FD6300',
-                onSurfaceVariant: 'white',
+                onSurfaceVariant: isEmailFocused || email.length > 0 ? 'white' : '#C7D1D9',
               },
             }}
           />
-          <View style={styles.inputContainer}>
-            <TextInput
-              style={styles.input}
-              placeholder="Password"
-              placeholderTextColor="#888"
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry={!isPasswordVisible}
-            />
-            <TouchableOpacity onPress={togglePasswordVisible} style={styles.icon}>
-              <Icon name={isPasswordVisible ? 'eye-off' : 'eye'} size={20} color="white"/>
-            </TouchableOpacity>
-          </View>
+
+
+          <TextInput
+            label="Password"
+            value={password}
+            onChangeText={setPassword}
+            mode="outlined"
+            secureTextEntry={true}
+            textColor='white'
+            onFocus={() => setIsPasswordFocused(true)}
+            onBlur={() => setIsPasswordFocused(false)}
+            style={[
+              { width: '85%', marginBottom: 20 },
+              getInputStyle(isPasswordFocused, password.length > 0)
+            ]}
+            outlineStyle={{
+              borderRadius: 20,
+            }}
+            outlineColor={isPasswordFocused || password.length > 0 ? 'white' : 'transparent'}
+            activeOutlineColor='#FD6300'
+            theme={{
+              colors: {
+                primary: '#FD6300',
+                onSurfaceVariant: isPasswordFocused || password.length > 0 ? 'white' : '#C7D1D9',
+              },
+            }}
+          />
+
           {passwordError && <Text className="text-red-500 mt-1 w-4/5">{passwordError}</Text>}
           <PasswordRequirements password={password} />
           <View style={styles.inputContainer}>
@@ -189,6 +235,33 @@ const SignUp = ({ navigation }) => {
               <Icon name={isConfirmPasswordVisible ? 'eye-off' : 'eye'} size={20} color="white"/>
             </TouchableOpacity>
           </View>
+
+
+          <TextInput
+            label="Confirm Password"
+            value={confirmPassword}
+            onChangeText={setConfirmPassword}
+            mode="outlined"
+            secureTextEntry={true}
+            textColor='white'
+            onFocus={() => setIsConfirmPasswordFocused(true)}
+            onBlur={() => setIsConfirmPasswordFocused(false)}
+            style={[
+              { width: '85%', marginBottom: 10, marginTop: 10 },
+              getInputStyle(isConfirmPasswordFocused, confirmPassword.length > 0)
+            ]}
+            outlineStyle={{
+              borderRadius: 20,
+            }}
+            outlineColor={isConfirmPasswordFocused || confirmPassword.length > 0 ? 'white' : 'transparent'}
+            activeOutlineColor='#FD6300'
+            theme={{
+              colors: {
+                primary: '#FD6300',
+                onSurfaceVariant: isConfirmPasswordFocused || confirmPassword.length > 0 ? 'white' : '#C7D1D9',
+              },
+            }}
+          />
 
           {confirmPasswordError && <Text className="text-red-500 mt-1 w-4/5">{confirmPasswordError}</Text>}
           <View
@@ -237,7 +310,7 @@ const SignUp = ({ navigation }) => {
           </View>
           <CustomButton
             title="Sign Up"
-            containerStyle="mt-5 w-4/5 bg-orange-500 items-center justify-center rounded-3xl"
+            containerStyle="mt-5 w-[85%] bg-orange-500 items-center justify-center rounded-3xl"
             handlePress={handleSignUp}
           />
           {error && <Text className="text-red-500 mt-4">{error}</Text>}
