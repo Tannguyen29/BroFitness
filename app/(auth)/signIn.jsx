@@ -1,5 +1,5 @@
-import { Text, View, ScrollView, Image, TouchableOpacity } from "react-native";
 import React, { useState, useEffect } from "react";
+import { Text, View, ScrollView, Image, TouchableOpacity } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { TextInput } from 'react-native-paper';
@@ -8,6 +8,7 @@ import logo from "../../assets/image/gymLogo.png";
 import CustomButton from "../../components/CustomButton";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { saveUserInfo, getUserInfo } from "../../config/api";
+import Icon from 'react-native-vector-icons/MaterialIcons'; 
 
 const appleLogo = require('../../assets/image/apple.png');
 const facebookLogo = require('../../assets/image/facebook.png');
@@ -20,6 +21,7 @@ const SignIn = ({ navigation }) => {
   const [rememberMe, setRememberMe] = useState(false);
   const [isEmailFocused, setIsEmailFocused] = useState(false);
   const [isPasswordFocused, setIsPasswordFocused] = useState(false);
+  const [showPassword, setShowPassword] = useState(false); 
 
   useEffect(() => {
     const checkLoginStatus = async () => {
@@ -76,7 +78,7 @@ const SignIn = ({ navigation }) => {
 
   const handleSignIn = async () => {
     try {
-      const response = await axios.post('http://192.168.1.66:5000/signin', { email, password });
+      const response = await axios.post('http://192.168.2.28:5000/signin', { email, password });
       const { token, name, personalInfoCompleted } = response.data;
   
       await saveUserInfo(token, name || email, personalInfoCompleted);
@@ -150,31 +152,44 @@ const SignIn = ({ navigation }) => {
               },
             }}
           />
-          <TextInput
-            label="Password"
-            value={password}
-            onChangeText={(text) => setPassword(text)}
-            mode="outlined"
-            secureTextEntry
-            onFocus={() => setIsPasswordFocused(true)}
-            onBlur={() => setIsPasswordFocused(false)}
-            style={[
-              { width: '85%', marginBottom: 10 },
-              getInputStyle(isPasswordFocused, password.length > 0)
-            ]}
-            outlineStyle={{
-              borderRadius: 20,
-            }}
-            outlineColor={isPasswordFocused || password.length > 0 ? 'white' : 'transparent'}
-            activeOutlineColor='#FD6300'
-            textColor='white'
-            theme={{
-              colors: {
-                primary: '#FD6300',
-                onSurfaceVariant: isPasswordFocused || password.length > 0 ? 'white' : '#C7D1D9',
-              },
-            }}
-          />
+          <View style={{ position: 'relative', width: '85%', marginBottom: 10 }}>
+            <TextInput
+              label="Password"
+              value={password}
+              onChangeText={(text) => setPassword(text)}
+              mode="outlined"
+              secureTextEntry={!showPassword} 
+              onFocus={() => setIsPasswordFocused(true)}
+              onBlur={() => setIsPasswordFocused(false)}
+              style={[
+                { width: '100%', paddingRight: 50 }, 
+                getInputStyle(isPasswordFocused, password.length > 0)
+              ]}
+              outlineStyle={{
+                borderRadius: 20,
+              }}
+              outlineColor={isPasswordFocused || password.length > 0 ? 'white' : 'transparent'}
+              activeOutlineColor='#FD6300'
+              textColor='white'
+              theme={{
+                colors: {
+                  primary: '#FD6300',
+                  onSurfaceVariant: isPasswordFocused || password.length > 0 ? 'white' : '#C7D1D9',
+                },
+              }}
+            />
+            <TouchableOpacity
+              onPress={() => setShowPassword(!showPassword)}
+              style={{
+                position: 'absolute',
+                right: 15,
+                top: '50%',
+                transform: [{ translateY: -12 }], 
+              }}
+            >
+              <Icon name={showPassword ? 'visibility-off' : 'visibility'} size={24} color="white" />
+            </TouchableOpacity>
+          </View>
           <TouchableOpacity onPress={() => navigation.navigate("EmailInput")}>
             <Text className="text-orange-500 mt-5 left-1/4">
               Forgot Password?
