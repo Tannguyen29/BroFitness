@@ -9,6 +9,7 @@ import CustomButton from "../../components/CustomButton";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { saveUserInfo, getUserInfo } from "../../config/api";
 import Icon from 'react-native-vector-icons/MaterialIcons'; 
+import { API_BASE_URL } from '@env';
 
 const appleLogo = require('../../assets/image/apple.png');
 const facebookLogo = require('../../assets/image/facebook.png');
@@ -78,7 +79,7 @@ const SignIn = ({ navigation }) => {
 
   const handleSignIn = async () => {
     try {
-      const response = await axios.post('http://192.168.2.28:5000/signin', { email, password });
+      const response = await axios.post(`${API_BASE_URL}/signin`, { email, password });
       const { token, name, personalInfoCompleted } = response.data;
   
       await saveUserInfo(token, name || email, personalInfoCompleted);

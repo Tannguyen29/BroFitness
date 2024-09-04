@@ -39,6 +39,7 @@
     "react-icons": "^5.2.1",
     "react-native": "0.74.5",
     "react-native-app-intro-slider": "^4.0.4",
+    "react-native-dotenv": "^3.4.11",
     "react-native-onboarding-swiper": "^1.2.0",
     "react-native-paper": "^5.12.3",
     "react-native-progress": "^5.0.1",

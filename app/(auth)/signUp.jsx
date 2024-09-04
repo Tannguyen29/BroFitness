@@ -7,6 +7,7 @@ import { TextInput } from 'react-native-paper';
 import logo from "../../assets/image/gymLogo.png";
 import CustomButton from "../../components/CustomButton";
 import Icon from 'react-native-vector-icons/MaterialIcons'; 
+import { API_BASE_URL } from '@env';
 
 const SignUp = ({ navigation }) => {
   const [name, setName] = useState("");
@@ -68,7 +69,7 @@ const SignUp = ({ navigation }) => {
     }
 
     try {
-      await axios.post('http://192.168.2.28:5000/signup', { name, email, password });
+      await axios.post(`${API_BASE_URL}/signup`, { name, email, password });
       navigation.navigate("OtpInput", { email });
     } catch (error) {
       setError(error.response ? error.response.data : 'Error signing up');

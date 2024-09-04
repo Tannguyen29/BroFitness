@@ -19,8 +19,7 @@ import PlanOverview from '../../components/PlanOverview';
 import WorkoutScreen from '../screen/WorkoutScreen';
 import WorkoutCompletedScreen from '../screen/WorkoutCompletedScreen';
 import AllPlan from '../screen/AllPlans'
-
-const API_BASE_URL = "http://192.168.2.28:5000";
+import { API_BASE_URL } from '@env';
 
 const Stack = createNativeStackNavigator();
 
