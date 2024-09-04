@@ -17,6 +17,7 @@ import { saveUserInfo, getUserInfo } from "../../config/api";
 import WheelPicker from "@quidone/react-native-wheel-picker";
 import ProgressBar from "react-native-progress/Bar";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { API_BASE_URL } from '@env';
 
 const PersonalInformationSetup = ({ navigation }) => {
   const [currentStep, setCurrentStep] = useState(0);
@@ -286,7 +287,7 @@ const PersonalInformationSetup = ({ navigation }) => {
 
       const token = await AsyncStorage.getItem("userToken");
       const response = await axios.post(
-        "http://192.168.2.28:5000/personal-information-setup",
+        `${API_BASE_URL}/personal-information-setup`,
         {
           gender,
           age,

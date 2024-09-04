@@ -19,13 +19,12 @@ import { faArrowUpRightFromSquare, faChevronRight } from "@fortawesome/free-soli
 import { getUserInfo } from '../../config/api';
 import axios from 'axios';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { API_BASE_URL } from '@env';
 
 const { width: screenWidth } = Dimensions.get('window');
 const itemWidth = screenWidth * 0.95;
 const itemHeight = 250;
 const bannerHeight = 150;
-
-const API_BASE_URL = "http://192.168.2.28:5000";
 
 const MainPage = () => {
   const [userName, setUserName] = useState('');

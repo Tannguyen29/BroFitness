@@ -1,10 +1,10 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const API_URL = 'http://192.168.2.28:5000';
+import { API_BASE_URL } from '@env';
 
 const apiClient = axios.create({
-  baseURL: API_URL,
+  baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -53,7 +53,7 @@ export const clearUserInfo = async () => {
 
 export const verifyOtp = async (email, otp) => {
   try {
-    const response = await axios.post(`${API_URL}/verify-otp`, { email, otp });
+    const response = await axios.post(`${API_BASE_URL}/verify-otp`, { email, otp });
     return response.data;
   } catch (error) {
     throw error.response ? error.response.data : 'Error verifying OTP';
@@ -62,7 +62,7 @@ export const verifyOtp = async (email, otp) => {
 
 export const resendOtp = async (email) => {
   try {
-    const response = await axios.post(`${API_URL}/resend-otp`, { email });
+    const response = await axios.post(`${API_BASE_URL}/resend-otp`, { email });
     return response.data;
   } catch (error) {
     throw error.response ? error.response.data : 'Error resending OTP';
@@ -71,7 +71,7 @@ export const resendOtp = async (email) => {
 
 export const sendResetPasswordEmail = async (email) => {
   try {
-    const response = await axios.post(`${API_URL}/send-otp`, { email });
+    const response = await axios.post(`${API_BASE_URL}/send-otp`, { email });
     return response.data;
   } catch (error) {
     throw error.response ? error.response.data : 'Error sending OTP';
@@ -80,7 +80,7 @@ export const sendResetPasswordEmail = async (email) => {
 
 export const resetPassword = async (email, newPassword, confirmPassword) => {
   try {
-    const response = await axios.post(`${API_URL}/resetpassword`, {
+    const response = await axios.post(`${API_BASE_URL}/resetpassword`, {
       email,
       newPassword,
       confirmPassword,
@@ -93,7 +93,7 @@ export const resetPassword = async (email, newPassword, confirmPassword) => {
 
 export const signIn = async (email, password) => {
   try {
-    const response = await axios.post(`${API_URL}/signin`, { email, password });
+    const response = await axios.post(`${API_BASE_URL}/signin`, { email, password });
     return response.data;
   } catch (error) {
     throw error.response ? error.response.data : 'Error signing in';
@@ -102,7 +102,7 @@ export const signIn = async (email, password) => {
 
 export const signUp = async (name, email, password) => {
   try {
-    const response = await axios.post(`${API_URL}/signup`, { name, email, password });
+    const response = await axios.post(`${API_BASE_URL}/signup`, { name, email, password });
     return response.data;
   } catch (error) {
     throw error.response ? error.response.data : 'Error signing up';
@@ -112,7 +112,7 @@ export const signUp = async (name, email, password) => {
 export const submitPersonalInfo = async (personalInfo) => {
   try {
     const token = await AsyncStorage.getItem('userToken');
-    const response = await axios.post(`${API_URL}/personal-information-setup`, personalInfo, {
+    const response = await axios.post(`${API_BASE_URL}/personal-information-setup`, personalInfo, {
       headers: {
         'x-auth-token': token
       }

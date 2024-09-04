@@ -12,8 +12,7 @@ import {
 import axios from 'axios';
 import { Icon } from "@rneui/themed";
 import { useNavigation } from '@react-navigation/native';
-
-const API_BASE_URL = "http://192.168.2.28:5000";
+import { API_BASE_URL } from '@env';
 
 const AllPlans = () => {
   const [plans, setPlans] = useState([]);
