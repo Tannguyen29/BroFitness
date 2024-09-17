@@ -20,6 +20,7 @@ import { getUserInfo } from '../../config/api';
 import axios from 'axios';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { API_BASE_URL } from '@env';
+import { getAvatarSource } from '../../utils/avatarHelper';
 
 const { width: screenWidth } = Dimensions.get('window');
 const itemWidth = screenWidth * 0.95;
@@ -28,6 +29,7 @@ const bannerHeight = 150;
 
 const MainPage = () => {
   const [userName, setUserName] = useState('');
+  const [userData, setUserData] = useState({});
   const [banners, setBanners] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -51,20 +53,29 @@ const MainPage = () => {
     fetchBanners();
   }, [fetchBanners]);
 
-  useEffect(() => {
-    const loadUserInfo = async () => {
-      setIsLoading(true);
-      const { name } = await getUserInfo();
-      if (name) {
-        setUserName(name);
-      } else {
-        setUserName('User');
-      }
-      setIsLoading(false);
-    };
-
-    loadUserInfo();
+  const loadUserInfo = useCallback(async () => {
+    setIsLoading(true);
+    const userInfo = await getUserInfo();
+    if (userInfo) {
+      setUserName(userInfo.name);
+      setUserData(userInfo);
+    } else {
+      setUserName('User');
+      setUserData({});
+    }
+    setIsLoading(false);
   }, []);
+
+  useEffect(() => {
+    loadUserInfo();
+  }, [loadUserInfo]);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadUserInfo();
+    }, [loadUserInfo])
+  );
+  
 
   const fetchPlans = useCallback(async () => {
     try {
@@ -156,21 +167,18 @@ const MainPage = () => {
       <ScrollView contentContainerStyle={styles.scrollViewContainer}>
         <View style={styles.headerContainer}>
           <View style={styles.avatarText}>
-            <Avatar
-              size={42}
-              rounded
-              source={{ uri: "https://randomuser.me/api/portraits/men/36.jpg" }}
-              containerStyle={styles.avatarContainer}
-            />
+          <Avatar
+            size={42}
+            rounded
+            source={userData.avatarUrl ? { uri: userData.avatarUrl } : getAvatarSource(userData)}
+            containerStyle={styles.avatarContainer}
+          />
             <View>
               <Text style={styles.aText}>Welcome back</Text>
               <Text style={[styles.aText, { fontSize: 22, fontWeight: "600" }]}>
                 {isLoading ? "Loading..." : userName}
               </Text>
             </View>
-          </View>
-          <View style={styles.iconContainer}>
-            <Notification size="32" color="white" />
           </View>
         </View>
         <View style={styles.bannerContainer}>

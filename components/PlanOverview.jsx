@@ -8,7 +8,7 @@ const PlanOverview = ({ plan, navigation }) => {
   if (!plan) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#0000ff" />
+        <ActivityIndicator size="large" color="#007AFF" />
       </View>
     );
   }
@@ -20,24 +20,37 @@ const PlanOverview = ({ plan, navigation }) => {
   const renderWeeks = () => {
     let weekComponents = [];
     for (let week = 1; week <= weeks; week++) {
+      const isCurrentWeek = Math.ceil(currentDay / daysPerWeek) === week;
       weekComponents.push(
         <View key={`week-${week}`} style={styles.weekContainer}>
-          <View style={styles.weekHeader}>
-            <Icon name="flash" type="ionicon" color="#FD6300" size={24} />
-            <Text style={styles.weekTitle}>WEEK {week}</Text>
-            <Text style={styles.weekProgress}>{currentDay}/{daysPerWeek}</Text>
+          <View style={styles.weekIconContainer}>
+            <View style={[
+              styles.flashIconBox,
+              isCurrentWeek ? styles.activeFlashIconBox : styles.inactiveFlashIconBox
+            ]}>
+              <Icon name="flash" type="ionicon" color="#FFFFFF" size={20} />
+            </View>
+            {week < weeks && <View style={styles.weekConnector} />}
           </View>
-          <View style={styles.daysContainer}>
-            {renderDays(week)}
+          <View style={styles.weekContent}>
+            <View style={styles.weekHeader}>
+              <Text style={styles.weekTitle}>WEEK {week}</Text>
+              <Text style={styles.weekProgress}>{currentDay}/{daysPerWeek}</Text>
+            </View>
+            <View style={styles.weekBox}>
+              <View style={styles.daysContainer}>
+                {renderDays(week)}
+              </View>
+              {week === 1 && (
+                <TouchableOpacity 
+                  style={styles.startButton}
+                  onPress={() => navigation.navigate('PlanDetail', { planId: plan._id, week: 1, day: currentDay })}
+                >
+                  <Text style={styles.startButtonText}>START</Text>
+                </TouchableOpacity>
+              )}
+            </View>
           </View>
-          {week === 1 && (
-            <TouchableOpacity 
-              style={styles.startButton}
-              onPress={() => navigation.navigate('PlanDetail', { planId: plan._id, week: 1, day: currentDay })}
-            >
-              <Text style={styles.startButtonText}>START</Text>
-            </TouchableOpacity>
-          )}
         </View>
       );
     }
@@ -52,16 +65,20 @@ const PlanOverview = ({ plan, navigation }) => {
       const isCurrent = absoluteDay === currentDay;
 
       dayComponents.push(
-        <View key={`day-${day}`} style={styles.dayItem}>
-          <View style={[
-            styles.dayButton,
-            isCompleted && styles.completedDay,
-            isCurrent && styles.currentDay
-          ]}>
-            <Text style={[styles.dayText, (isCompleted || isCurrent) && styles.activeDayText]}>{day}</Text>
+        <React.Fragment key={`day-${day}`}>
+          <View style={styles.dayItem}>
+            <View style={[
+              styles.dayButton,
+              isCompleted && styles.completedDay,
+              isCurrent && styles.currentDay
+            ]}>
+              <Text style={[styles.dayText, (isCompleted || isCurrent) && styles.activeDayText]}>{day}</Text>
+            </View>
           </View>
-          {day < daysPerWeek && <View style={styles.dayConnector} />}
-        </View>
+          {day < daysPerWeek && (
+            <Icon name="chevron-forward" type="ionicon" color="#333333" size={20} style={styles.dayConnector} />
+          )}
+        </React.Fragment>
       );
     }
     return dayComponents;
@@ -74,7 +91,7 @@ const PlanOverview = ({ plan, navigation }) => {
         style={styles.header}
       >
         <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-          <Icon name="chevron-left" size={30} color="#FD6300" />
+          <Icon name="chevron-left" size={30} color="#FFFFFF" />
         </TouchableOpacity>
         <Text style={styles.title}>{plan.title.toUpperCase()}</Text>
         <Text style={styles.subtitle}>{plan.subtitle.toUpperCase()}</Text>
@@ -99,6 +116,12 @@ const PlanOverview = ({ plan, navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#000000',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
     backgroundColor: '#000000',
   },
   header: {
@@ -134,55 +157,87 @@ const styles = StyleSheet.create({
   },
   progressText: {
     color: '#FFFFFF',
-    fontSize: 16,
+    fontSize: 18,
     marginBottom: 5,
   },
   progressBar: {
-    height: 6,
+    height: 15,
     backgroundColor: '#333333',
-    borderRadius: 3,
+    borderRadius: 10,
   },
   progressFill: {
     height: '100%',
-    backgroundColor: '#FD6300s',
+    backgroundColor: '#007AFF',
     borderRadius: 3,
   },
   progressPercentage: {
     color: '#FFFFFF',
-    fontSize: 14,
+    fontSize: 16,
     textAlign: 'right',
     marginTop: 5,
   },
   weekContainer: {
-    marginBottom: 20,
-    backgroundColor: '#1C1C1E',
-    borderRadius: 10,
-    padding: 15,
+    flexDirection: 'row',
+    marginBottom: 0, 
+  },
+  weekIconContainer: {
+    alignItems: 'center',
+    marginRight: 10,
+    height: '100%',
+  },
+  flashIconBox: {
+    width: 30,
+    height: 30,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1,
+  },
+  activeFlashIconBox: {
+    backgroundColor: '#FD6300',
+  },
+  inactiveFlashIconBox: {
+    backgroundColor: '#444444',
+  },
+  weekConnector: {
+    position: 'absolute',
+    top: 30, 
+    left: 14,
+    width: 2,
+    bottom: -30, 
+    backgroundColor: '#444444',
+  },
+  weekContent: {
+    flex: 1,
+    paddingBottom: 30,
   },
   weekHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 15,
+    marginBottom: 10,
   },
   weekTitle: {
     fontSize: 18,
     fontWeight: 'bold',
     color: '#FFFFFF',
-    marginLeft: 10,
     flex: 1,
   },
   weekProgress: {
     color: '#FFFFFF',
     fontSize: 16,
   },
+  weekBox: {
+    backgroundColor: '#1C1C1E',
+    borderRadius: 10,
+    padding: 15,
+  },
   daysContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    justifyContent: 'space-between',
     marginBottom: 15,
   },
   dayItem: {
-    flexDirection: 'row',
     alignItems: 'center',
   },
   dayButton: {
@@ -201,15 +256,12 @@ const styles = StyleSheet.create({
   },
   dayText: {
     color: '#999999',
-    fontSize: 14,
+    fontSize: 16,
   },
   activeDayText: {
     color: '#FFFFFF',
   },
   dayConnector: {
-    height: 2,
-    width: 10,
-    backgroundColor: '#333333',
     marginHorizontal: 2,
   },
   startButton: {
@@ -223,6 +275,9 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  scrollView: {
+    flex: 1,
   },
 });
 

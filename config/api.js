@@ -32,12 +32,72 @@ export const saveUserInfo = async (token, name, personalInfoCompleted) => {
 export const getUserInfo = async () => {
   try {
     const token = await AsyncStorage.getItem('userToken');
-    const name = await AsyncStorage.getItem('userName');
-    const personalInfoCompleted = JSON.parse(await AsyncStorage.getItem('personalInfoCompleted')) || false;
-    return { token, name, personalInfoCompleted };
+    
+    if (token) {
+      const response = await apiClient.get('/user-info', {
+        headers: { 'x-auth-token': token }
+      });
+      
+      const { name, personalInfo, avatarUrl } = response.data;
+      const { gender, age, weight, height } = personalInfo;
+      
+      return { 
+        token, 
+        name, 
+        personalInfoCompleted: true,
+        gender,
+        age,
+        weight,
+        height,
+        avatarUrl
+      };
+    }
+    
+    return { token: null, name: null, personalInfoCompleted: false, avatarUrl: null };
   } catch (error) {
     console.error('Error getting user info:', error);
-    return { token: null, name: null, personalInfoCompleted: false };
+    return { token: null, name: null, personalInfoCompleted: false, avatarUrl: null };
+  }
+};
+
+export const updateUserInfo = async (userData) => {
+  try {
+    const token = await AsyncStorage.getItem('userToken');
+    const response = await axios.put(`${API_BASE_URL}/user-info`, userData, {
+      headers: { 'x-auth-token': token }
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error updating user info:', error);
+    throw error;
+  }
+};
+
+export const uploadAvatar = async (uri) => {
+  try {
+    const token = await AsyncStorage.getItem('userToken');
+    const formData = new FormData();
+    
+    const uriParts = uri.split('.');
+    const fileType = uriParts[uriParts.length - 1];
+
+    formData.append('avatar', {
+      uri,
+      name: `avatar.${fileType}`,
+      type: `image/${fileType}`
+    });
+
+    const response = await axios.post(`${API_BASE_URL}/upload-avatar`, formData, {
+      headers: {
+        'x-auth-token': token,
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+
+    return response.data.avatarUrl;
+  } catch (error) {
+    console.error('Error uploading avatar:', error);
+    throw error;
   }
 };
 

@@ -19,6 +19,9 @@ import PlanOverview from '../../components/PlanOverview';
 import WorkoutScreen from '../screen/WorkoutScreen';
 import WorkoutCompletedScreen from '../screen/WorkoutCompletedScreen';
 import AllPlan from '../screen/AllPlans'
+import ProfileEdit from '../../components/ProfileEdit'
+import FoodSelectionScreen from '../../components/FoodSelectionScreen'
+import FoodDetail from '../../components/FoodDetailScreen'
 import { API_BASE_URL } from '@env';
 
 const Stack = createNativeStackNavigator();
@@ -74,7 +77,9 @@ const AppNavigation = ({ initialRoute }) => {
         <Stack.Screen name="Workout" component={WorkoutScreen} options={{ headerShown: false }}/>
         <Stack.Screen name="WorkoutCompleted" component={WorkoutCompletedScreen} options={{ headerShown: false }}/>
         <Stack.Screen name="AllPlans" component={AllPlan} options={{ headerShown: false }}/>
-
+        <Stack.Screen name="ProfileEdit" component={ProfileEdit} options={{ headerShown: false }}/>
+        <Stack.Screen name="FoodSelectionScreen" component={FoodSelectionScreen} options={{ headerShown: false }}/>
+        <Stack.Screen name="FoodDetail" component={FoodDetail} options={{ headerShown: false }}/>
       </Stack.Navigator>
     </NavigationContainer>
   );

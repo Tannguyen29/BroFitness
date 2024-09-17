@@ -1,30 +1,45 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { Avatar } from "@rneui/themed";
-import { clearUserInfo } from '../../config/api';
+import { clearUserInfo, getUserInfo } from '../../config/api';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { getUserInfo } from '../../config/api'
 import Icon from 'react-native-vector-icons/FontAwesome';
+import { getAvatarSource } from '../../utils/avatarHelper';
 
 const Profile = () => {
   const navigation = useNavigation();
   const [isLoading, setIsLoading] = useState(true);
-  const [userName, setUserName] = useState('');
+  const [userData, setUserData] = useState({
+    name: '',
+    gender: '',
+    age: 0,
+    weight: 0,
+    height: 0,
+    avatarUrl: ''
+  });
+
+  const loadUserInfo = useCallback(async () => {
+    setIsLoading(true);
+    const userInfo = await getUserInfo();
+    if (userInfo) {
+      setUserData(userInfo);
+    } else {
+      setUserData({ name: 'User', gender: '', age: 0, weight: 0, height: 0, avatarUrl: '' });
+    }
+    setIsLoading(false);
+  }, []);
 
   useEffect(() => {
-    const loadUserInfo = async () => {
-      setIsLoading(true);
-      const { name } = await getUserInfo();
-      if (name) {
-        setUserName(name);
-      } else {
-        setUserName('User');
-      }
-      setIsLoading(false);
-    };
     loadUserInfo();
-  }, []);
+  }, [loadUserInfo]);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadUserInfo();
+    }, [loadUserInfo])
+  );
+
   const handleSignOut = async () => {
     try {
       await clearUserInfo();
@@ -39,37 +54,36 @@ const Profile = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView style={styles.scrollcontainer}>
-        <View style={styles.basicinfo}>
-          <Avatar
-            size={120}
-            rounded
-            source={{ uri: "https://randomuser.me/api/portraits/men/36.jpg" }}
-            containerStyle={styles.avatarContainer}
+    <ScrollView style={styles.scrollcontainer}>
+      <View style={styles.basicinfo}>
+        <Avatar
+          size={120}
+          rounded
+          source={userData.avatarUrl ? { uri: userData.avatarUrl } : getAvatarSource(userData)}
+          containerStyle={styles.avatarContainer}
           />
-          <Text style={[styles.name, { fontSize: 28, fontWeight: "600" }]}>
-            {isLoading ? "Loading..." : userName}
-          </Text>
-          
-        </View>
+        <Text style={[styles.name, { fontSize: 28, fontWeight: "600" }]}>
+          {isLoading ? "Loading..." : userData.name}
+        </Text>
+      </View>
         <View style={styles.infordiv}>
           <View style={styles.infoBar}>
             <View style={styles.infoItem}>
-              <Text style={styles.infoValue}>100 Kg</Text>
+              <Text style={styles.infoValue}>{userData.weight} Kg</Text>
               <Text style={styles.infoLabel}>Weight</Text>
             </View>
             <View style={styles.infoItem}>
-              <Text style={styles.infoValue}>21</Text>
+              <Text style={styles.infoValue}>{userData.age}</Text>
               <Text style={styles.infoLabel}>Years Old</Text>
             </View>
             <View style={styles.infoItem}>
-              <Text style={styles.infoValue}>1.55 Cm</Text>
+              <Text style={styles.infoValue}>{userData.height} Cm</Text>
               <Text style={styles.infoLabel}>Height</Text>
             </View>
           </View>
         </View>
         <View style={styles.profileoption}>
-        <TouchableOpacity style={styles.optionItem}>
+        <TouchableOpacity style={styles.optionItem} onPress={() => navigation.navigate('ProfileEdit')}>
             <Icon name="user" size={24} color="#FD6300" style={styles.optionIcon} />
             <Text style={styles.optionText}>Profile</Text>
           </TouchableOpacity>
@@ -120,7 +134,8 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     color: 'white',
-    marginBottom: 50,
+    marginBottom: 40,
+    marginTop: 15
   },
   infordiv: {
     flex: 1,
