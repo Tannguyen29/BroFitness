@@ -5,9 +5,11 @@ import { getUserInfo, updateUserInfo, uploadAvatar } from '../config/api';
 import { TextInput } from 'react-native-paper';
 import LottieView from 'lottie-react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
+import { useNavigation } from '@react-navigation/native';
 
 const ProfileEdit = () => {
-  const [isEditing, setIsEditing] = useState(false); 
+  const navigation = useNavigation();
+  const [isEditing, setIsEditing] = useState(false);
   const [userData, setUserData] = useState({
     name: '',
     email: '',
@@ -70,6 +72,34 @@ const ProfileEdit = () => {
     }
   };
 
+  const takePhoto = async () => {
+    if (!isEditing) {
+      return;
+    }
+
+    try {
+      const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
+      
+      if (permissionResult.granted === false) {
+        Alert.alert("Permission required", "You need to allow camera access to take a photo.");
+        return;
+      }
+
+      const result = await ImagePicker.launchCameraAsync({
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 1,
+      });
+
+      if (!result.canceled && result.assets && result.assets[0]) {
+        await uploadAvatarImage(result.assets[0].uri);
+      }
+    } catch (error) {
+      console.error('Error taking photo:', error);
+      Alert.alert('Error', 'Failed to take photo. Please try again.');
+    }
+  };
+
   const uploadAvatarImage = async (uri) => {
     if (!uri) {
       console.error('No URI provided for avatar upload');
@@ -93,12 +123,23 @@ const ProfileEdit = () => {
 
   return (
     <ScrollView style={styles.container}>
-      <TouchableOpacity onPress={pickImage}>
-        <Image
-          source={userData.avatarUrl ? { uri: userData.avatarUrl } : require('../assets/image/blankmale.png')}
-          style={styles.avatar}
-        />
+      <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+        <Icon name="arrow-left" size={24} color="#FD6300" />
       </TouchableOpacity>
+
+      <View style={styles.avatarContainer}>
+        <TouchableOpacity onPress={pickImage}>
+          <Image
+            source={userData.avatarUrl ? { uri: userData.avatarUrl } : require('../assets/image/blankmale.png')}
+            style={styles.avatar}
+          />
+        </TouchableOpacity>
+        {isEditing && (
+          <TouchableOpacity onPress={takePhoto} style={styles.cameraButton}>
+            <Icon name="camera" size={20} color="#FFF" />
+          </TouchableOpacity>
+        )}
+      </View>
 
       {isLoading && (
         <View style={styles.loadingContainer}>
@@ -196,12 +237,29 @@ const styles = StyleSheet.create({
     padding: 20,
     backgroundColor: '#1c1c1e',
   },
+  backButton: {
+    position: 'absolute',
+    top: 40,
+    left: 20,
+    zIndex: 1,
+  },
+  avatarContainer: {
+    alignItems: 'center',
+    marginBottom: 20,
+    marginTop: 40,
+  },
   avatar: {
     width: 120,
     height: 120,
     borderRadius: 60,
-    alignSelf: 'center',
-    marginBottom: 20,
+  },
+  cameraButton: {
+    position: 'absolute',
+    bottom: 0,
+    right: 120,
+    backgroundColor: '#FD6300',
+    padding: 10,
+    borderRadius: 20,
   },
   infoContainer: {
     width: '100%',
@@ -223,7 +281,7 @@ const styles = StyleSheet.create({
   },
   editIcon: {
     position: 'absolute',
-    top: 10,
+    top: 40,
     right: 20, 
   },
   actionButtons: {
