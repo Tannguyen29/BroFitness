@@ -4,7 +4,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import MainPage from '../(tabs)/MainPage';
 import Profiles from '../(tabs)/profile';
 import Calendars from '../(tabs)/Calendar';
-import Discovers from '../(tabs)/Discover';
+import Nutrition from '../(tabs)/Nutrition';
 import Personal from '../(tabs)/Personal';
 import { Home, Profile, Calendar, Discover, TaskSquare } from 'iconsax-react-native';
 
@@ -44,7 +44,7 @@ const BottomNavigation = () => {
           }else if (route.name === 'Personal') {
             labelText = 'Personal';
           } else {
-            labelText = 'Discover';
+            labelText = 'Nutrition';
           }
 
           return <Text style={{ fontSize: 12, fontWeight: 'bold', color: focused ? 'coral' : "#676767" }}>{labelText}</Text>;
@@ -64,7 +64,7 @@ const BottomNavigation = () => {
       })}
     >
       <Tab.Screen name="MainPage" component={MainPage} />
-      <Tab.Screen name="Discover" component={Discovers} />
+      <Tab.Screen name="Nutrition" component={Nutrition} />
       <Tab.Screen name="Personal" component={Personal} />
       <Tab.Screen name="Calendar" component={Calendars} />
       <Tab.Screen name="Profile" component={Profiles} />
