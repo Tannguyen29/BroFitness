@@ -27,7 +27,6 @@ const PersonalInformationSetup = ({ navigation }) => {
   const [height, setHeight] = useState(170);
   const [weight, setWeight] = useState(70);
   const [fitnessGoal, setFitnessGoal] = useState(null);
-  const [healthIssues, setHealthIssues] = useState([]);
   const [equipment, setEquipment] = useState(null);
   const [experienceLevel, setExperienceLevel] = useState(null);
   const [bodyParts, setBodyParts] = useState([]);
@@ -80,9 +79,7 @@ const PersonalInformationSetup = ({ navigation }) => {
         return physicalActivityLevel !== null;
       case 8: // Fitness Goal
         return fitnessGoal !== null;
-      case 9: // Health Issues
-        return healthIssues.length > 0;
-      case 10: // Available Equipment
+      case 9: // Available Equipment
         return equipment !== null;
       default:
         return true;
@@ -148,14 +145,6 @@ const PersonalInformationSetup = ({ navigation }) => {
     const heightInMeters = heightUnit === "cm" ? height / 100 : height * 0.3048;
     const weightInKg = weightUnit === "kg" ? weight : weight / 2.20462;
     return weightInKg / (heightInMeters * heightInMeters);
-  };
-
-  const handleHealthIssueToggle = (issueId) => {
-    setHealthIssues((prevIssues) =>
-      prevIssues.includes(issueId)
-        ? prevIssues.filter((id) => id !== issueId)
-        : [...prevIssues, issueId]
-    );
   };
 
   const activityLevels = [
@@ -227,40 +216,6 @@ const PersonalInformationSetup = ({ navigation }) => {
     }
   };
 
-  const healthIssueOptions = [
-    {
-      id: "chest",
-      title: "Chest",
-      image: require("../../assets/HealthIssues/chest.png"),
-    },
-    {
-      id: "back",
-      title: "Back",
-      image: require("../../assets/HealthIssues/back.png"),
-    },
-    {
-      id: "legs",
-      title: "Legs",
-      image: require("../../assets/HealthIssues/legs.png"),
-    },
-    {
-      id: "shoulders",
-      title: "Shoulders",
-      image: require("../../assets/HealthIssues/shoulders.png"),
-    },
-    {
-      id: "arms",
-      title: "Arms",
-      image: require("../../assets/HealthIssues/arms.png"),
-    },
-    {
-      id: "abs",
-      title: "Abs",
-      image: require("../../assets/HealthIssues/abs.png"),
-    },
-    { id: "None", title: "None" },
-  ];
-
   const experienceLevels = [
     {
       id: "beginner",
@@ -297,7 +252,6 @@ const PersonalInformationSetup = ({ navigation }) => {
             weightUnit === "kg" ? weight : convertWeight(weight, "lb", "kg"),
           physicalActivityLevel,
           fitnessGoal,
-          healthIssues,
           equipment,
           experienceLevel,
           bodyParts,
@@ -682,32 +636,6 @@ const PersonalInformationSetup = ({ navigation }) => {
             </TouchableOpacity>
           ))}
         </View>
-      ),
-    },
-    {
-      component: (
-        <ScrollView style={styles.section}>
-          <Text style={styles.sectionTitle}>Any health issues?</Text>
-          <View style={styles.infoBox}>
-            <Text style={styles.infoText}>
-              Select any areas where you have health concerns. This helps us
-              customize your workout plan.
-            </Text>
-          </View>
-          {healthIssueOptions.map((issue) => (
-            <TouchableOpacity
-              key={issue.id}
-              style={[
-                styles.healthIssueItem,
-                healthIssues.includes(issue.id) && styles.selectedHealthIssue,
-              ]}
-              onPress={() => handleHealthIssueToggle(issue.id)}
-            >
-              <Text style={styles.healthIssueTitle}>{issue.title}</Text>
-              <Image source={issue.image} style={styles.healthIssueImage} />
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
       ),
     },
     {
@@ -1162,32 +1090,6 @@ const styles = StyleSheet.create({
     color: "rgba(255, 255, 255, 0.7)",
   },
   experienceImage: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-  },
-  healthIssueItem: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    backgroundColor: "rgba(255, 255, 255, 0.1)",
-    padding: 15,
-    borderRadius: 10,
-    marginBottom: 10,
-    borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.3)",
-  },
-  selectedHealthIssue: {
-    borderColor: "#FD6300",
-    borderWidth: 2,
-    backgroundColor: "rgba(253, 99, 0, 0.1)",
-  },
-  healthIssueTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "white",
-  },
-  healthIssueImage: {
     width: 80,
     height: 80,
     borderRadius: 40,
