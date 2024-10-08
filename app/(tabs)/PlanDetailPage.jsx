@@ -16,7 +16,7 @@ import { API_BASE_URL } from '@env';
 
 const PlanDetailPage = ({ route }) => {
   const navigation = useNavigation();
-  const { planId, week, day } = route.params;
+  const { planId, week, day, completeWorkout } = route.params;
   const [plan, setPlan] = useState(null);
   const [exerciseDetails, setExerciseDetails] = useState({});
   const [loading, setLoading] = useState(true);
@@ -147,6 +147,9 @@ const PlanDetailPage = ({ route }) => {
                 gifUrl: exerciseDetails[exercise.name]?.gifUrl,
                 level: currentDay.level,
               })),
+              planId: planId,
+              week: week,
+              day: day
             })
           }
         >

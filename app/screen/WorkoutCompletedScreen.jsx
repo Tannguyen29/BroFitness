@@ -1,9 +1,29 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView } from 'react-native';
 import { Icon } from "@rneui/themed";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const WorkoutCompletedScreen = ({ route, navigation }) => {
-  const { exercises, totalTime, calories } = route.params;
+  const { exercises, totalTime, calories, planId, week, day } = route.params;
+
+  useEffect(() => {
+    completeWorkout();
+  }, []);
+
+  const completeWorkout = async () => {
+    try {
+      const key = `plan_progress_${planId}`;
+      const savedProgress = await AsyncStorage.getItem(key);
+      let progress = savedProgress ? JSON.parse(savedProgress) : { completedDays: 0 };
+      
+      progress.completedDays += 1;
+      progress.lastUnlockTime = new Date().toISOString();
+
+      await AsyncStorage.setItem(key, JSON.stringify(progress));
+    } catch (error) {
+      console.error("Error saving progress:", error);
+    }
+  };
 
   const formatTime = (seconds) => {
     const minutes = Math.floor(seconds / 60);

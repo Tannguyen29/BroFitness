@@ -26,6 +26,7 @@ const PersonalInformationSetup = ({ navigation }) => {
   const [age, setAge] = useState(new Date().getFullYear() - 2009);
   const [height, setHeight] = useState(170);
   const [weight, setWeight] = useState(70);
+  const [goalWeight, setGoalWeight] = useState(weight);
   const [fitnessGoal, setFitnessGoal] = useState(null);
   const [equipment, setEquipment] = useState(null);
   const [experienceLevel, setExperienceLevel] = useState(null);
@@ -60,6 +61,9 @@ const PersonalInformationSetup = ({ navigation }) => {
       }
     }
   };
+  const handleGoalWeightChange = (value) => {
+    setGoalWeight(parseFloat(value.toFixed(1)));
+  };
 
   const isStepValid = (step) => {
     switch (step) {
@@ -73,13 +77,15 @@ const PersonalInformationSetup = ({ navigation }) => {
         return height !== null;
       case 5: // Weight
         return weight !== null;
-      case 6: // Exercise Level
+      case 6:
+        return goalWeight !== null;
+      case 7: // Exercise Level
         return experienceLevel !== null;
-      case 7: // Physical Activity Level
+      case 8: // Physical Activity Level
         return physicalActivityLevel !== null;
-      case 8: // Fitness Goal
+      case 9: // Fitness Goal
         return fitnessGoal !== null;
-      case 9: // Available Equipment
+      case 10: // Available Equipment
         return equipment !== null;
       default:
         return true;
@@ -145,6 +151,36 @@ const PersonalInformationSetup = ({ navigation }) => {
     const heightInMeters = heightUnit === "cm" ? height / 100 : height * 0.3048;
     const weightInKg = weightUnit === "kg" ? weight : weight / 2.20462;
     return weightInKg / (heightInMeters * heightInMeters);
+  };
+
+  const calculateBMR = () => {
+    if (gender === 'male') {
+      return 88.362 + (13.397 * weight) + (4.799 * height) - (5.677 * age);
+    } else {
+      return 447.593 + (9.247 * weight) + (3.098 * height) - (4.330 * age);
+    }
+  };
+  
+  const calculateTDEE = () => {
+    const bmr = calculateBMR();
+    const activityMultipliers = {
+      sedentary: 1.2,
+      moderate: 1.55,
+      active: 1.725,
+    };
+    return bmr * activityMultipliers[physicalActivityLevel];
+  };
+  
+  const calculateCalorieGoal = () => {
+    const tdee = calculateTDEE();
+    switch (fitnessGoal) {
+      case 'loseWeight':
+        return tdee - 500;
+      case 'buildMuscle':
+        return tdee + 300;
+      default:
+        return tdee;
+    }
   };
 
   const activityLevels = [
@@ -239,22 +275,22 @@ const PersonalInformationSetup = ({ navigation }) => {
 
   const handleSubmit = async () => {
     try {
-
       const token = await AsyncStorage.getItem("userToken");
+      const calorieGoal = Math.round(calculateCalorieGoal());
       const response = await axios.post(
         `${API_BASE_URL}/personal-information-setup`,
         {
           gender,
           age,
-          height:
-            heightUnit === "cm" ? height : convertHeight(height, "ft", "cm"),
-          weight:
-            weightUnit === "kg" ? weight : convertWeight(weight, "lb", "kg"),
+          height: heightUnit === "cm" ? height : convertHeight(height, "ft", "cm"),
+          weight: weightUnit === "kg" ? weight : convertWeight(weight, "lb", "kg"),
+          goalWeight: weightUnit === "kg" ? goalWeight : convertWeight(goalWeight, "lb", "kg"),
           physicalActivityLevel,
           fitnessGoal,
           equipment,
           experienceLevel,
           bodyParts,
+          calorieGoal
         },
         {
           headers: {
@@ -263,11 +299,22 @@ const PersonalInformationSetup = ({ navigation }) => {
         }
       );
       console.log(response.data);
-
+  
       const { name } = await getUserInfo();
       await saveUserInfo(token, name, true);
-
-      navigation.navigate("BottomTabs");
+  
+      navigation.navigate("SetupCompletion", {
+        userData: {
+          gender,
+          age,
+          height: heightUnit === "cm" ? height : convertHeight(height, "ft", "cm"),
+          weight: weightUnit === "kg" ? weight : convertWeight(weight, "lb", "kg"),
+          physicalActivityLevel,
+          fitnessGoal,
+          experienceLevel,
+          calorieGoal
+        }
+      });
     } catch (error) {
       console.error(error);
     }
@@ -543,6 +590,51 @@ const PersonalInformationSetup = ({ navigation }) => {
             <Text style={styles.bmiValue}>{calculateBMI().toFixed(1)}</Text>
             <Text style={styles.bmiDescription}>
               {getBMIMessage(calculateBMI())}
+            </Text>
+          </View>
+        </View>
+      ),
+    },
+    {
+      component: (
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>What's your goal weight?</Text>
+          <View style={styles.infoBox}>
+            <Text style={styles.infoText}>
+              Set your target weight. We'll use this to tailor your fitness plan.
+            </Text>
+          </View>
+          <Text style={styles.measurementValue}>
+            {goalWeight.toFixed(1)} {weightUnit}
+          </Text>
+          <Slider
+            style={styles.slider}
+            value={goalWeight}
+            onValueChange={handleGoalWeightChange}
+            minimumValue={weight * 0.5}
+            maximumValue={weight * 1.5}
+            step={0.1}
+            minimumTrackTintColor="#FD6300"
+            maximumTrackTintColor="#ffffff"
+            thumbTintColor="#FD6300"
+          />
+          <View style={styles.sliderLabels}>
+            <Text style={styles.sliderLabel}>
+              {(weight * 0.5).toFixed(1)} {weightUnit}
+            </Text>
+            <Text style={styles.sliderLabel}>
+              {weight.toFixed(1)} {weightUnit}
+            </Text>
+            <Text style={styles.sliderLabel}>
+              {(weight * 1.5).toFixed(1)} {weightUnit}
+            </Text>
+          </View>
+          <View style={styles.goalWeightInfo}>
+            <Text style={styles.goalWeightInfoText}>
+              Current weight: {weight.toFixed(1)} {weightUnit}
+            </Text>
+            <Text style={styles.goalWeightInfoText}>
+              Goal: {goalWeight > weight ? "Gain" : "Lose"} {Math.abs(goalWeight - weight).toFixed(1)} {weightUnit}
             </Text>
           </View>
         </View>
@@ -1153,6 +1245,15 @@ const styles = StyleSheet.create({
     width: 100,
     height: 80,
     borderRadius: 10,
+  },
+  goalWeightInfo: {
+    marginTop: 20,
+    alignItems: 'center',
+  },
+  goalWeightInfoText: {
+    color: 'white',
+    fontSize: 16,
+    marginBottom: 5,
   },
 });
 
