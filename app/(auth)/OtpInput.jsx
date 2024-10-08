@@ -38,7 +38,6 @@ const OtpInput = ({ navigation, route }) => {
   const handleVerifyOtp = async () => {
     try {
       await verifyOtp(email, otp.join(''));
-      Alert.alert("Success", "OTP verified successfully! Please sign in.");
       navigation.navigate("SignIn");
     } catch (error) {
       setError(typeof error === 'string' ? error : 'Error verifying OTP');

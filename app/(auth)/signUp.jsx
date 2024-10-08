@@ -77,44 +77,21 @@ const SignUp = ({ navigation }) => {
   };
 
   const PasswordRequirements = ({ password }) => {
-    const requirements = [
-      { label: 'Special character', regex: /[!@#$%^&*(),.?":{}|<>]/ },
-      { label: 'At least 8 characters', regex: /.{8,}/ },
-      { label: 'At least a number', regex: /\d/ },
-      { label: 'Uppercase character', regex: /[A-Z]/ },
-    ];
+  const requirements = [
+    { label: 'Must be 8 or more characters and contain at least 1 number and 1 special character', regex: /^(?=.*\d)(?=.*[!@#$%^&*(),.?":{}|<>]).{8,}$/ },
+  ];
 
-    const getStrength = () => {
-      return requirements.filter(req => req.regex.test(password)).length / requirements.length;
-    };
+  const meetsRequirement = requirements[0].regex.test(password);
 
-    return (
-      <View className="w-4/5 mt-2">
-        <View className="h-1 bg-gray-300 rounded-full mb-3 mt-2">
-          <View
-            className="h-1 bg-orange-500 rounded-full"
-            style={{ width: `${getStrength() * 100}%` }}
-          />
-        </View>
-        <View className="flex-row flex-wrap justify-between ">
-          {requirements.map((req, index) => (
-            <View key={index} className="flex-row items-center mb-2 w-[48%]">
-              {req.regex.test(password) ? (
-                <View className="w-4 h-4 rounded-full mr-2 bg-green-500 items-center justify-center">
-                  <Text className="text-white text-xs">✓</Text>
-                </View>
-              ) : (
-                <View className="w-4 h-4 rounded-full mr-2 border border-gray-300" />
-              )}
-              <Text className={`text-sm ${req.regex.test(password) ? 'text-green-500' : 'text-gray-400'}`}>
-                {req.label}
-              </Text>
-            </View>
-          ))}
-        </View>
-      </View>
-    );
-  };
+  return (
+    <View className="w-4/5 mt-2">
+      <Text style={{ color: meetsRequirement ? 'red' : 'white' }}>
+        {requirements[0].label}
+      </Text>
+    </View>
+  );
+};
+
 
   return (
     <SafeAreaView className="bg-black flex-1">

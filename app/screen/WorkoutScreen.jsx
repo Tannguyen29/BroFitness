@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Image, SafeAreaView, TouchableOpacity } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { Icon } from "@rneui/themed";
 import { Audio } from 'expo-av';
 
-const WorkoutScreen = ({ route }) => {
+const WorkoutScreen = () => {
   const navigation = useNavigation();
-  const { exercises } = route.params;
+  const route = useRoute();
+  const { exercises, planId, week, day } = route.params;
   const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
   const [setCount, setSetCount] = useState(1);
   const [isResting, setIsResting] = useState(false);
@@ -122,10 +123,13 @@ const WorkoutScreen = ({ route }) => {
       setSetCount(1);
       setIsResting(false);
     } else {
-      navigation.navigate('WorkoutCompleted', {
+      navigation.replace('WorkoutCompleted', {
         exercises: exercises,
         totalTime: totalTime,
         calories: calculateCalories(),
+        planId: planId,
+        week: week,
+        day: day
       });
     }
   };
