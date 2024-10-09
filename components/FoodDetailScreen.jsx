@@ -5,6 +5,7 @@ import { useNavigation } from '@react-navigation/native';
 import { nutritionAppId, nutritionAppKey } from '@env';
 
 const FoodDetailScreen = ({ route }) => {
+  const { mealType } = route.params;
   const { foodItem } = route.params;
   const navigation = useNavigation();
   const [nutritionInfo, setNutritionInfo] = useState(null);
@@ -36,9 +37,24 @@ const FoodDetailScreen = ({ route }) => {
   };
 
   const handleAddFood = () => {
-    console.log(`Added ${foodItem.name} to meal: ${servingSize} ${servingUnit}, ${numberOfServings} servings`);
-    navigation.goBack();
+    const multiplier = numberOfServings;
+  
+    const addedFood = {
+      name: foodItem.name,
+      calories: (nutritionInfo.calories * multiplier).toFixed(2) || 0,
+      protein: (getNutrientValue('PROCNT') * multiplier).toFixed(2),
+      fat: (getNutrientValue('FAT') * multiplier).toFixed(2),
+      carbs: (getNutrientValue('CHOCDF') * multiplier).toFixed(2),
+      servingSize,
+      servingUnit,
+      numberOfServings,
+    };
+  
+    console.log('Added Food before navigating:', addedFood);
+  
+    navigation.navigate('FoodSelection', { addedFood });
   };
+  
 
   const getNutrientValue = (nutrient, defaultValue = 0) => {
     return nutritionInfo?.totalNutrients?.[nutrient]?.quantity?.toFixed(2) || defaultValue;
@@ -77,7 +93,7 @@ const FoodDetailScreen = ({ route }) => {
             style={styles.servingInput}
             value={servingSize}
             onChangeText={(text) => setServingSize(text)}
-            keyboardType="numeric"
+            keynpx ardType="numeric"
           />
           <TextInput
             style={styles.servingInput}

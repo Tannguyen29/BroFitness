@@ -1,11 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Modal } from 'react-native';
 import { AnimatedCircularProgress } from 'react-native-circular-progress';
 import { Ionicons } from '@expo/vector-icons';
 import { Calendar } from 'react-native-calendars';
 import moment from 'moment';
-import { useNavigation } from '@react-navigation/native';
-
+import { useNavigation, useRoute } from '@react-navigation/native';
+import { getUserInfo } from '../../config/api';
 const DateSelector = ({ selectedDate, onDateChange }) => {
   const [showCalendar, setShowCalendar] = useState(false);
 
@@ -51,15 +51,15 @@ const DateSelector = ({ selectedDate, onDateChange }) => {
         visible={showCalendar}
         onRequestClose={() => setShowCalendar(false)}
       >
-        <TouchableOpacity 
-          style={styles.modalOverlay} 
-          activeOpacity={1} 
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
           onPressOut={() => setShowCalendar(false)}
         >
           <View style={styles.calendarContainer}>
             <Calendar
               onDayPress={handleDateSelect}
-              markedDates={{[selectedDate]: {selected: true, selectedColor: '#4A90E2'}}}
+              markedDates={{ [selectedDate]: { selected: true, selectedColor: '#4A90E2' } }}
               theme={{
                 backgroundColor: '#38393a',
                 calendarBackground: '#38393a',
@@ -213,58 +213,118 @@ const MealItem = ({ title, calories, items }) => {
   );
 };
 
-const Nutrition = () => {
+const Nutrition = ({ route }) => {
   const [selectedDate, setSelectedDate] = useState(moment().format('YYYY-MM-DD'));
+  const [breakfastItems, setBreakfastItems] = useState([]);
+  const [lunchItems, setLunchItems] = useState([]);
+  const [dinnerItems, setDinnerItems] = useState([]);
+  const [caloriesLeft, setCaloriesLeft] = useState(0);
+  const totalCalories = breakfastItems.reduce((total, item) => total + (parseFloat(item.calories) || 0), 0) +
+    lunchItems.reduce((total, item) => total + (parseFloat(item.calories) || 0), 0) +
+    dinnerItems.reduce((total, item) => total + (parseFloat(item.calories) || 0), 0);
+
+  const totalCarbs = breakfastItems.reduce((total, item) => total + (parseFloat(item.carbs) || 0), 0) +
+    lunchItems.reduce((total, item) => total + (parseFloat(item.carbs) || 0), 0) +
+    dinnerItems.reduce((total, item) => total + (parseFloat(item.carbs) || 0), 0);
+
+  const totalProtein = breakfastItems.reduce((total, item) => total + (parseFloat(item.protein) || 0), 0) +
+    lunchItems.reduce((total, item) => total + (parseFloat(item.protein) || 0), 0) +
+    dinnerItems.reduce((total, item) => total + (parseFloat(item.protein) || 0), 0);
+
+  const totalFat = breakfastItems.reduce((total, item) => total + (parseFloat(item.fat) || 0), 0) +
+    lunchItems.reduce((total, item) => total + (parseFloat(item.fat) || 0), 0) +
+    dinnerItems.reduce((total, item) => total + (parseFloat(item.fat) || 0), 0);
+
+  const calculateBMR = (gender, weight, height, age) => {
+    if (gender === 'male') {
+      return (10 * weight) + (6.25 * height) - (5 * age) + 5;
+    } else {
+      return (10 * weight) + (6.25 * height) - (5 * age) - 161;
+    }
+  };
+  useEffect(() => {
+    const fetchUserInfoAndCalculateCalories = async () => {
+      const userInfo = await getUserInfo();
+
+      if (userInfo.personalInfoCompleted) {
+        const { gender, age, weight, height } = userInfo;
+        const bmr = calculateBMR(gender, weight, height, age);
+
+        // Tính lượng calo còn lại
+        const remainingCalories = bmr - totalCalories;
+        setCaloriesLeft(remainingCalories > 0 ? remainingCalories : 0);
+      }
+    };
+
+    fetchUserInfoAndCalculateCalories();
+  }, [totalCalories]);
+
+
+  useEffect(() => {
+    if (route.params?.addedFood) {
+      const { mealType, addedFood } = route.params;
+
+      const updateMealItems = (mealItems, setMealItems) => {
+        const existingFoodIndex = mealItems.findIndex(item => item.name === addedFood.name);
+
+        if (existingFoodIndex !== -1) {
+          // Nếu món ăn đã tồn tại, cộng dồn giá trị
+          const updatedMealItems = mealItems.map((item, index) => {
+            if (index === existingFoodIndex) {
+              return {
+                ...item,
+                calories: (parseFloat(item.calories) + parseFloat(addedFood.calories)).toFixed(2),
+                protein: (parseFloat(item.protein) + parseFloat(addedFood.protein)).toFixed(2),
+                fat: (parseFloat(item.fat) + parseFloat(addedFood.fat)).toFixed(2),
+                carbs: (parseFloat(item.carbs) + parseFloat(addedFood.carbs)).toFixed(2),
+                numberOfServings: item.numberOfServings + addedFood.numberOfServings,
+              };
+            }
+            return item;
+          });
+          setMealItems(updatedMealItems);
+        } else {
+          setMealItems([...mealItems, addedFood]);
+        }
+      };
+
+      if (mealType === 'Breakfast') {
+        updateMealItems(breakfastItems, setBreakfastItems);
+      } else if (mealType === 'Lunch') {
+        updateMealItems(lunchItems, setLunchItems);
+      } else if (mealType === 'Dinner') {
+        updateMealItems(dinnerItems, setDinnerItems);
+      }
+    }
+  }, [route.params?.addedFood]);
+
 
   return (
     <ScrollView style={styles.container}>
       <DateSelector selectedDate={selectedDate} onDateChange={setSelectedDate} />
-      <MacroGoals carbs={216} protein={147} fat={38} total={362} />
-      
+      <MacroGoals carbs={totalCarbs} protein={totalProtein} fat={totalFat} total={caloriesLeft} />
+
       <View style={styles.progressContainer}>
-        <ProgressItem 
-          icon="water-outline" 
-          value={54.7} 
-          unit="FL OZ" 
-          max={100} 
-          color="#4A90E2" 
-        />
-        <ProgressItem 
-          icon="footsteps-outline" 
-          value={6876} 
-          unit="Steps" 
-          max={10000} 
-          color="#E24A8B" 
-        />
+        <ProgressItem icon="water-outline" value={54.7} unit="FL OZ" max={100} color="#4A90E2" />
+        <ProgressItem icon="footsteps-outline" value={6876} unit="Steps" max={10000} color="#E24A8B" />
       </View>
 
       <MealItem
         title="Breakfast"
-        calories={312}
-        items={[
-          { name: 'Grade A Large Egg', calories: 140 },
-          { name: 'Blueberries', calories: 92 },
-          { name: 'Maple Chicken Breakfast Sausage', calories: 180 },
-        ]}
+        calories={breakfastItems.reduce((total, item) => total + item.calories, 0)}
+        items={breakfastItems}
       />
-      
+
       <MealItem
         title="Lunch"
-        calories={406}
-        items={[
-          { name: 'Chicken Breast - Cooked', calories: 246 },
-          { name: 'Broccoli', calories: 31 },
-        ]}
+        calories={lunchItems.reduce((total, item) => total + item.calories, 0)}
+        items={lunchItems}
       />
 
       <MealItem
         title="Dinner"
-        calories={550}
-        items={[
-          { name: 'Grilled Salmon', calories: 350 },
-          { name: 'Quinoa', calories: 120 },
-          { name: 'Roasted Vegetables', calories: 80 },
-        ]}
+        calories={dinnerItems.reduce((total, item) => total + item.calories, 0)}
+        items={dinnerItems}
       />
     </ScrollView>
   );
@@ -471,7 +531,7 @@ const styles = StyleSheet.create({
   foodCalories: {
     fontSize: 14,
     color: 'white',
-  },
+  },  
 });
 
 export default Nutrition;

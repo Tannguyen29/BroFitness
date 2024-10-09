@@ -12,6 +12,7 @@ const FoodSelectionScreen = ({ route }) => {
   const [foodSuggestions, setFoodSuggestions] = useState([]);
   const [history, setHistory] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedFoods, setSelectedFoods] = useState([]);
 
   useEffect(() => {
     setHistory([
@@ -71,8 +72,15 @@ const FoodSelectionScreen = ({ route }) => {
   };
 
   const handleAddFood = (food) => {
-    console.log(`Added ${food.name} to ${mealType}`);
-    navigation.goBack();
+    navigation.navigate('Nutrition', {
+      mealType,
+      addedFood: {
+        name: food.name,
+        calories: food.calories,
+        amount: food.amount,
+      }
+      
+    });
   };
 
   const handleFoodSelection = (food) => {
