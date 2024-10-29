@@ -2,14 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Animated, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import { useNavigation } from '@react-navigation/native'; // Import useNavigation
+import { useNavigation } from '@react-navigation/native'; 
 
 const SetupCompletionScreen = ({ route }) => {
   const { userData } = route.params;
   const [progress, setProgress] = useState(0);
   const [currentStep, setCurrentStep] = useState(0);
   const fadeAnim = new Animated.Value(0);
-  const navigation = useNavigation(); // Get navigation prop
+  const navigation = useNavigation();
 
   const steps = [
     { title: 'Analyzing your body', info: `${userData.height} cm, ${userData.weight} kg` },
@@ -43,7 +43,7 @@ const SetupCompletionScreen = ({ route }) => {
     if (currentStep === steps.length - 1) {
       const navigateTimeout = setTimeout(() => {
         navigation.navigate('BottomTabs');
-      }, 5000);
+      }, 6400);
 
       return () => clearTimeout(navigateTimeout); 
     }

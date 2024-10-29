@@ -85,7 +85,7 @@ const SignUp = ({ navigation }) => {
 
   return (
     <View className="w-4/5 mt-2">
-      <Text style={{ color: meetsRequirement ? 'red' : 'white' }}>
+      <Text style={{ color: meetsRequirement ? 'green' : 'white' }}>
         {requirements[0].label}
       </Text>
     </View>
