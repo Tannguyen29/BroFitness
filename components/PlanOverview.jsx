@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, ImageBackground, Modal } from 'react-native';
 import { Icon } from "@rneui/themed";
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getUserInfo } from '../config/api';
 
 const PlanOverview = ({ plan, navigation }) => {
   const [currentDay, setCurrentDay] = useState(1);
@@ -9,21 +10,39 @@ const PlanOverview = ({ plan, navigation }) => {
   const [lastUnlockTime, setLastUnlockTime] = useState(null);
   const [isCompleted, setIsCompleted] = useState(false);
   const [showCompletionModal, setShowCompletionModal] = useState(false);
+  const [userId, setUserId] = useState(null);
 
   useEffect(() => {
-    loadProgress();
+    const initializeUser = async () => {
+      try {
+        const userInfo = await getUserInfo();
+        if (userInfo && userInfo.token) {
+          setUserId(userInfo.token);
+          await loadProgress(userInfo.token);
+        }
+      } catch (error) {
+        console.error("Error getting user info:", error);
+      }
+    };
+
+    initializeUser();
   }, []);
 
-  const loadProgress = async () => {
+  const getProgressKey = (userId) => {
+    return `plan_progress_${userId}_${plan._id}`;
+  };
+
+  const loadProgress = async (currentUserId) => {
     try {
-      const savedProgress = await AsyncStorage.getItem(`plan_progress_${plan._id}`);
+      if (!currentUserId) return;
+      
+      const savedProgress = await AsyncStorage.getItem(getProgressKey(currentUserId));
       if (savedProgress) {
         const { completedDays, lastUnlockTime } = JSON.parse(savedProgress);
         setCompletedDays(completedDays);
         setLastUnlockTime(new Date(lastUnlockTime));
         setCurrentDay(completedDays + 1);
         
-        // Check if the plan is completed
         if (completedDays >= plan.duration.weeks * plan.duration.daysPerWeek) {
           setIsCompleted(true);
         }
@@ -35,7 +54,9 @@ const PlanOverview = ({ plan, navigation }) => {
 
   const saveProgress = async (newCompletedDays) => {
     try {
-      await AsyncStorage.setItem(`plan_progress_${plan._id}`, JSON.stringify({
+      if (!userId) return;
+
+      await AsyncStorage.setItem(getProgressKey(userId), JSON.stringify({
         completedDays: newCompletedDays,
         lastUnlockTime: new Date().toISOString()
       }));
@@ -157,9 +178,13 @@ const PlanOverview = ({ plan, navigation }) => {
 
   const canStartWorkout = () => {
     if (!lastUnlockTime) return true;
+    
     const now = new Date();
     const midnight = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
-    return lastUnlockTime < midnight && currentDay <= plan.duration.weeks * plan.duration.daysPerWeek;
+    const lastWorkoutDay = new Date(lastUnlockTime).getDate();
+    const currentDate = now.getDate();
+    return (lastWorkoutDay !== currentDate) && 
+           (currentDay <= plan.duration.weeks * plan.duration.daysPerWeek);
   };
 
   const handleStartButtonPress = () => {
@@ -170,12 +195,14 @@ const PlanOverview = ({ plan, navigation }) => {
     }
   };
 
-  const resetPlan = () => {
+  const resetPlan = async () => {
+    if (!userId) return;
+    
     setCompletedDays(0);
     setCurrentDay(1);
     setIsCompleted(false);
     setShowCompletionModal(false);
-    saveProgress(0);
+    await saveProgress(0);
   };
 
   const continueFromLastDay = () => {
