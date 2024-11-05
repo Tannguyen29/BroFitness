@@ -38,7 +38,7 @@ export const getUserInfo = async () => {
         headers: { 'x-auth-token': token }
       });
       
-      const { name, personalInfo, avatarUrl } = response.data;
+      const { name, personalInfo, avatarUrl, role } = response.data;
       const { gender, age, weight, height } = personalInfo;
       
       return { 
@@ -50,14 +50,28 @@ export const getUserInfo = async () => {
         weight,
         height,
         avatarUrl,
-        calorieGoal
+
+        role
+
       };
     }
     
-    return { token: null, name: null, personalInfoCompleted: false, avatarUrl: null };
+    return { 
+      token: null, 
+      name: null, 
+      personalInfoCompleted: false, 
+      avatarUrl: null,
+      role: 'free' 
+    };
   } catch (error) {
     console.error('Error getting user info:', error);
-    return { token: null, name: null, personalInfoCompleted: false, avatarUrl: null };
+    return { 
+      token: null, 
+      name: null, 
+      personalInfoCompleted: false, 
+      avatarUrl: null,
+      role: 'free'
+    };
   }
 };
 
