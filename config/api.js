@@ -50,7 +50,9 @@ export const getUserInfo = async () => {
         weight,
         height,
         avatarUrl,
+
         role
+
       };
     }
     

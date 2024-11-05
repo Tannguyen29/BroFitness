@@ -242,6 +242,7 @@ const Nutrition = ({ route }) => {
       return (10 * weight) + (6.25 * height) - (5 * age) - 161;
     }
   };
+  
   useEffect(() => {
     const fetchUserInfoAndCalculateCalories = async () => {
       const userInfo = await getUserInfo();
