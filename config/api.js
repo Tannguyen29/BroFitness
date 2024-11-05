@@ -49,7 +49,8 @@ export const getUserInfo = async () => {
         age,
         weight,
         height,
-        avatarUrl
+        avatarUrl,
+        calorieGoal
       };
     }
     
