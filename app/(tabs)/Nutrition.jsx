@@ -246,38 +246,39 @@ const Nutrition = ({ route }) => {
   useEffect(() => {
     const fetchUserInfoAndCalculateCalories = async () => {
       const userInfo = await getUserInfo();
-
+  
       if (userInfo.personalInfoCompleted) {
         const { gender, age, weight, height } = userInfo;
         const bmr = calculateBMR(gender, weight, height, age);
-
-        // Tính lượng calo còn lại
+  
+        // Calculate remaining calories and round to the nearest whole number
         const remainingCalories = bmr - totalCalories;
-        setCaloriesLeft(remainingCalories > 0 ? remainingCalories : 0);
+        setCaloriesLeft(remainingCalories > 0 ? Math.round(remainingCalories) : 0);
       }
     };
-
+  
     fetchUserInfoAndCalculateCalories();
   }, [totalCalories]);
+  
 
 
   useEffect(() => {
     if (route.params?.addedFood) {
       const { mealType, addedFood } = route.params;
-
+  
       const updateMealItems = (mealItems, setMealItems) => {
         const existingFoodIndex = mealItems.findIndex(item => item.name === addedFood.name);
-
+  
         if (existingFoodIndex !== -1) {
-          // Nếu món ăn đã tồn tại, cộng dồn giá trị
+          // If the food item already exists, accumulate the values
           const updatedMealItems = mealItems.map((item, index) => {
             if (index === existingFoodIndex) {
               return {
                 ...item,
-                calories: (parseFloat(item.calories) + parseFloat(addedFood.calories)).toFixed(2),
-                protein: (parseFloat(item.protein) + parseFloat(addedFood.protein)).toFixed(2),
-                fat: (parseFloat(item.fat) + parseFloat(addedFood.fat)).toFixed(2),
-                carbs: (parseFloat(item.carbs) + parseFloat(addedFood.carbs)).toFixed(2),
+                calories: Math.round(parseFloat(item.calories) + parseFloat(addedFood.calories)),
+                protein: Math.round(parseFloat(item.protein) + parseFloat(addedFood.protein)),
+                fat: Math.round(parseFloat(item.fat) + parseFloat(addedFood.fat)),
+                carbs: Math.round(parseFloat(item.carbs) + parseFloat(addedFood.carbs)),
                 numberOfServings: item.numberOfServings + addedFood.numberOfServings,
               };
             }
@@ -288,7 +289,7 @@ const Nutrition = ({ route }) => {
           setMealItems([...mealItems, addedFood]);
         }
       };
-
+  
       if (mealType === 'Breakfast') {
         updateMealItems(breakfastItems, setBreakfastItems);
       } else if (mealType === 'Lunch') {
@@ -298,6 +299,7 @@ const Nutrition = ({ route }) => {
       }
     }
   }, [route.params?.addedFood]);
+  
 
 
   return (
