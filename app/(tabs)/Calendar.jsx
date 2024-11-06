@@ -83,9 +83,9 @@ const CalendarScreen = () => {
   };
 
   const handleDateSelect = (day) => {
-    setSelectedDate(new Date(day.dateString));
+    const newDate = new Date(day.dateString);
+    setSelectedDate(newDate);
     setCalendarModalVisible(false);
-    setTimePickerVisible(true);
   };
 
   const handleTimeConfirm = (time) => {
@@ -125,6 +125,9 @@ const CalendarScreen = () => {
     }
   };
 
+  const handleAddSchedule = () => {
+    setTimePickerVisible(true);
+  };
   const renderWeekDays = () => {
     const startOfWeek = getStartOfWeek(selectedDate);
     return WEEKDAYS.map((day, index) => {
@@ -229,21 +232,28 @@ const CalendarScreen = () => {
       <ScrollView style={styles.scheduleList}>
         {renderWeekSchedule()}
       </ScrollView>
+      
+      <TouchableOpacity 
+        style={styles.floatingButton}
+        onPress={handleAddSchedule}
+      >
+        <Icon name="plus" size={24} color="#FFFFFF" />
+      </TouchableOpacity>
 
       {renderDetailModal()}
 
       <Modal
-        visible={isCalendarModalVisible}
-        animationType="slide"
-        transparent={true}
-      >
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            <Calendar
-              onDayPress={handleDateSelect}
-              markedDates={{
-                [selectedDate.toISOString().split('T')[0]]: { selected: true, selectedColor: '#FD6300' }
-              }}
+      visible={isCalendarModalVisible}
+      animationType="slide"
+      transparent={true}
+    >
+      <View style={styles.modalContainer}>
+        <View style={styles.modalContent}>
+          <Calendar
+            onDayPress={handleDateSelect}
+            markedDates={{
+              [selectedDate.toISOString().split('T')[0]]: { selected: true, selectedColor: '#FD6300' }
+            }}
               theme={{
                 backgroundColor: '#fff',
                 calendarBackground: '#fff',
@@ -254,23 +264,26 @@ const CalendarScreen = () => {
                 selectedDayBackgroundColor: '#FD6300',
                 arrowColor: '#FD6300'
               }}
-            />
-            <TouchableOpacity
-              style={styles.closeButton}
-              onPress={() => setCalendarModalVisible(false)}
-            >
-              <Text style={styles.closeButtonText}>Close</Text>
-            </TouchableOpacity>
-          </View>
+              />
+          <TouchableOpacity
+            style={styles.closeButton}
+            onPress={() => {
+              setCalendarModalVisible(false);
+              setTimePickerVisible(false);
+            }}
+          >
+            <Text style={styles.closeButtonText}>Close</Text>
+          </TouchableOpacity>
         </View>
-      </Modal>
+      </View>
+    </Modal>
 
-      <DateTimePickerModal
-        isVisible={isTimePickerVisible}
-        mode="time"
-        onConfirm={handleTimeConfirm}
-        onCancel={() => setTimePickerVisible(false)}
-      />
+    <DateTimePickerModal
+      isVisible={isTimePickerVisible}
+      mode="time"
+      onConfirm={handleTimeConfirm}
+      onCancel={() => setTimePickerVisible(false)}
+    />
 
       <Modal
         visible={isStudentModalVisible}
@@ -512,7 +525,23 @@ const styles = StyleSheet.create({
   },
   calendarContainer: {
     marginBottom: 20,
-  }
+  },
+  floatingButton: {
+    position: 'absolute',
+    right: 20,
+    bottom: 80,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: '#FD6300',
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+  },
 });
 
 export default CalendarScreen;

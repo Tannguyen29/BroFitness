@@ -41,10 +41,10 @@ const FoodDetailScreen = ({ route }) => {
   
     const addedFood = {
       name: foodItem.name,
-      calories: (nutritionInfo.calories * multiplier).toFixed(2) || 0,
-      protein: (getNutrientValue('PROCNT') * multiplier).toFixed(2),
-      fat: (getNutrientValue('FAT') * multiplier).toFixed(2),
-      carbs: (getNutrientValue('CHOCDF') * multiplier).toFixed(2),
+      calories: Math.round(nutritionInfo.calories * multiplier) || 0,
+      protein: Math.round(getNutrientValue('PROCNT') * multiplier),
+      fat: Math.round(getNutrientValue('FAT') * multiplier),
+      carbs: Math.round(getNutrientValue('CHOCDF') * multiplier),
       servingSize,
       servingUnit,
       numberOfServings,
@@ -55,11 +55,10 @@ const FoodDetailScreen = ({ route }) => {
     navigation.navigate('FoodSelection', { addedFood });
   };
   
-
   const getNutrientValue = (nutrient, defaultValue = 0) => {
-    return nutritionInfo?.totalNutrients?.[nutrient]?.quantity?.toFixed(2) || defaultValue;
+    return Math.round(nutritionInfo?.totalNutrients?.[nutrient]?.quantity) || defaultValue;
   };
-
+  
   return (
     <View style={styles.container}>
       <View style={styles.header}>
