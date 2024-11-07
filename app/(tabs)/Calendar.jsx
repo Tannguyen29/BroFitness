@@ -28,6 +28,8 @@ const CalendarScreen = () => {
   const [weekSchedules, setWeekSchedules] = useState({});
   const [detailModalVisible, setDetailModalVisible] = useState(false);
   const [selectedDaySchedules, setSelectedDaySchedules] = useState([]);
+  const [addScheduleDate, setAddScheduleDate] = useState(null);
+  const [isAddScheduleCalendarVisible, setAddScheduleCalendarVisible] = useState(false);
   
   useEffect(() => {
     fetchStudents();
@@ -82,10 +84,17 @@ const CalendarScreen = () => {
     return startOfWeek;
   };
 
-  const handleDateSelect = (day) => {
+  const handleViewCalendarSelect = (day) => {
     const newDate = new Date(day.dateString);
     setSelectedDate(newDate);
     setCalendarModalVisible(false);
+  };
+
+  const handleAddScheduleDateSelect = (day) => {
+    const newDate = new Date(day.dateString);
+    setAddScheduleDate(newDate);
+    setAddScheduleCalendarVisible(false);
+    setTimePickerVisible(true);
   };
 
   const handleTimeConfirm = (time) => {
@@ -94,15 +103,24 @@ const CalendarScreen = () => {
     setStudentModalVisible(true);
   };
 
+  const handleAddSchedule = () => {
+    setAddScheduleCalendarVisible(true);
+  };
+
   const isStudentAlreadyScheduled = (studentId, date) => {
     const dateString = new Date(date).toDateString();
     const daySchedules = weekSchedules[dateString] || [];
     return daySchedules.some(schedule => schedule.studentId._id === studentId);
   };
-
+  
   const handleScheduleCreate = async () => {
     try {
-      if (isStudentAlreadyScheduled(selectedStudent._id, selectedDate)) {
+      if (!addScheduleDate) {
+        alert('Please select a date');
+        return;
+      }
+
+      if (isStudentAlreadyScheduled(selectedStudent._id, addScheduleDate)) {
         alert('This student already has a schedule for this day');
         return;
       }
@@ -110,23 +128,20 @@ const CalendarScreen = () => {
       const token = await AsyncStorage.getItem('userToken');
       await axios.post(`${API_BASE_URL}/schedules`, {
         studentId: selectedStudent._id,
-        date: selectedDate.toISOString(),
+        date: addScheduleDate.toISOString(),
         startTime: selectedTime,
-        endTime: new Date(new Date(`${selectedDate.toDateString()} ${selectedTime}`).getTime() + 60*60*1000).toLocaleTimeString()
+        endTime: new Date(new Date(`${addScheduleDate.toDateString()} ${selectedTime}`).getTime() + 60*60*1000).toLocaleTimeString()
       }, {
         headers: { 'x-auth-token': token }
       });
       
       setStudentModalVisible(false);
       setSelectedStudent(null);
+      setAddScheduleDate(null);
       fetchWeekSchedules();
     } catch (error) {
       console.error('Error creating schedule:', error);
     }
-  };
-
-  const handleAddSchedule = () => {
-    setTimePickerVisible(true);
   };
   const renderWeekDays = () => {
     const startOfWeek = getStartOfWeek(selectedDate);
@@ -242,18 +257,20 @@ const CalendarScreen = () => {
 
       {renderDetailModal()}
 
+      {/* Calendar Modal for Viewing Week */}
       <Modal
-      visible={isCalendarModalVisible}
-      animationType="slide"
-      transparent={true}
-    >
-      <View style={styles.modalContainer}>
-        <View style={styles.modalContent}>
-          <Calendar
-            onDayPress={handleDateSelect}
-            markedDates={{
-              [selectedDate.toISOString().split('T')[0]]: { selected: true, selectedColor: '#FD6300' }
-            }}
+        visible={isCalendarModalVisible}
+        animationType="slide"
+        transparent={true}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Select Week to View</Text>
+            <Calendar
+              onDayPress={handleViewCalendarSelect}
+              markedDates={{
+                [selectedDate.toISOString().split('T')[0]]: { selected: true, selectedColor: '#FD6300' }
+              }}
               theme={{
                 backgroundColor: '#fff',
                 calendarBackground: '#fff',
@@ -264,26 +281,60 @@ const CalendarScreen = () => {
                 selectedDayBackgroundColor: '#FD6300',
                 arrowColor: '#FD6300'
               }}
-              />
-          <TouchableOpacity
-            style={styles.closeButton}
-            onPress={() => {
-              setCalendarModalVisible(false);
-              setTimePickerVisible(false);
-            }}
-          >
-            <Text style={styles.closeButtonText}>Close</Text>
-          </TouchableOpacity>
+            />
+            <TouchableOpacity
+              style={styles.closeButton}
+              onPress={() => setCalendarModalVisible(false)}
+            >
+              <Text style={styles.closeButtonText}>Close</Text>
+            </TouchableOpacity>
+          </View>
         </View>
-      </View>
-    </Modal>
+      </Modal>
 
-    <DateTimePickerModal
-      isVisible={isTimePickerVisible}
-      mode="time"
-      onConfirm={handleTimeConfirm}
-      onCancel={() => setTimePickerVisible(false)}
-    />
+      {/* Calendar Modal for Adding Schedule */}
+      <Modal
+        visible={isAddScheduleCalendarVisible}
+        animationType="slide"
+        transparent={true}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Select Date for New Schedule</Text>
+            <Calendar
+              onDayPress={handleAddScheduleDateSelect}
+              markedDates={{
+                [addScheduleDate?.toISOString().split('T')[0]]: { selected: true, selectedColor: '#FD6300' }
+              }}
+              theme={{
+                backgroundColor: '#fff',
+                calendarBackground: '#fff',
+                textSectionTitleColor: '#000',
+                dayTextColor: '#000',
+                todayTextColor: '#FD6300',
+                selectedDayTextColor: '#000',
+                selectedDayBackgroundColor: '#FD6300',
+                arrowColor: '#FD6300'
+              }}
+            />
+            <TouchableOpacity
+              style={styles.closeButton}
+              onPress={() => {
+                setAddScheduleCalendarVisible(false);
+              }}
+            >
+              <Text style={styles.closeButtonText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      <DateTimePickerModal
+        isVisible={isTimePickerVisible}
+        mode="time"
+        onConfirm={handleTimeConfirm}
+        onCancel={() => setTimePickerVisible(false)}
+      />
 
       <Modal
         visible={isStudentModalVisible}
@@ -295,7 +346,7 @@ const CalendarScreen = () => {
             <Text style={styles.modalTitle}>Select Student</Text>
             <ScrollView>
               {students.map((student) => {
-                const isScheduled = isStudentAlreadyScheduled(student._id, selectedDate);
+                const isScheduled = addScheduleDate && isStudentAlreadyScheduled(student._id, addScheduleDate);
                 return (
                   <TouchableOpacity
                     key={student._id}
@@ -317,7 +368,11 @@ const CalendarScreen = () => {
             <View style={styles.modalButtons}>
               <TouchableOpacity
                 style={[styles.button, styles.cancelButton]}
-                onPress={() => setStudentModalVisible(false)}
+                onPress={() => {
+                  setStudentModalVisible(false);
+                  setSelectedStudent(null);
+                  setAddScheduleDate(null);
+                }}
               >
                 <Text style={styles.buttonText}>Cancel</Text>
               </TouchableOpacity>
