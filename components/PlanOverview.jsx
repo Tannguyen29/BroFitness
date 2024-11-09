@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator
 import { Icon } from "@rneui/themed";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getUserInfo } from '../config/api';
+import { EventRegister } from 'react-native-event-listeners';
 
 const PlanOverview = ({ plan, navigation }) => {
   const [currentDay, setCurrentDay] = useState(1);
@@ -32,11 +33,25 @@ const PlanOverview = ({ plan, navigation }) => {
     return `plan_progress_${userId}_${plan._id}`;
   };
 
+  useEffect(() => {
+    const listener = EventRegister.addEventListener('workoutCompleted', (data) => {
+      if (data.planId === plan._id) {
+        completeWorkout();
+      }
+    });
+
+    return () => {
+      EventRegister.removeEventListener(listener);
+    };
+  }, []);
+
   const loadProgress = async (currentUserId) => {
     try {
       if (!currentUserId) return;
       
-      const savedProgress = await AsyncStorage.getItem(getProgressKey(currentUserId));
+      const key = `plan_progress_${currentUserId}_${plan._id}`;
+      const savedProgress = await AsyncStorage.getItem(key);
+      
       if (savedProgress) {
         const { completedDays, lastUnlockTime } = JSON.parse(savedProgress);
         setCompletedDays(completedDays);
@@ -167,11 +182,10 @@ const PlanOverview = ({ plan, navigation }) => {
   const handleDayPress = (week, day) => {
     const absoluteDay = (week - 1) * daysPerWeek + day;
     if (absoluteDay === currentDay && canStartWorkout()) {
-      navigation.navigate('PlanDetail', { 
-        planId: plan._id, 
-        week, 
-        day: absoluteDay,
-        completeWorkout: completeWorkout
+      navigation.navigate('PlanDetail', {
+        planId: plan._id,
+        week,
+        day: absoluteDay
       });
     }
   };

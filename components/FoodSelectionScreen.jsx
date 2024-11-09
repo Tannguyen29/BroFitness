@@ -142,7 +142,7 @@ const FoodSelectionScreen = ({ route }) => {
           <Text style={[styles.tabText, styles.activeTabText]}>All</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.tab}>
-          <Text style={styles.tabText}>My Meals</Text>
+          <Text style={styles.tabText} onPress={() => navigation.navigate('MyMeal')}>My Meals</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.tab}>
           <Text style={styles.tabText}>My Recipes</Text>

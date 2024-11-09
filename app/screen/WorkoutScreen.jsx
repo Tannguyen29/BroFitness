@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, Image, SafeAreaView, TouchableOpacity } from 'r
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { Icon } from "@rneui/themed";
 import { Audio } from 'expo-av';
+import { EventRegister } from 'react-native-event-listeners';
 
 const WorkoutScreen = () => {
   const navigation = useNavigation();

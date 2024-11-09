@@ -45,6 +45,7 @@
     "react-native-calendars": "^1.1306.0",
     "react-native-circular-progress": "^1.4.0",
     "react-native-dotenv": "^3.4.11",
+    "react-native-event-listeners": "^1.0.7",
     "react-native-modal-datetime-picker": "^18.0.0",
     "react-native-onboarding-swiper": "^1.2.0",
     "react-native-paper": "^5.12.3",
