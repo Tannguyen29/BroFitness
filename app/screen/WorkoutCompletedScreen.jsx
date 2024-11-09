@@ -1,29 +1,26 @@
-import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { 
+  View, 
+  Text, 
+  StyleSheet, 
+  TouchableOpacity, 
+  SafeAreaView,
+  ActivityIndicator,
+  Alert
+} from 'react-native';
 import { Icon } from "@rneui/themed";
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { EventRegister } from 'react-native-event-listeners';
+import { getUserInfo } from '../../config/api';
 
 const WorkoutCompletedScreen = ({ route, navigation }) => {
   const { exercises, totalTime, calories, planId, week, day } = route.params;
+  const [selectedFeedback, setSelectedFeedback] = useState(null);
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
-    completeWorkout();
+    saveWorkoutProgress();
   }, []);
-
-  const completeWorkout = async () => {
-    try {
-      const key = `plan_progress_${planId}`;
-      const savedProgress = await AsyncStorage.getItem(key);
-      let progress = savedProgress ? JSON.parse(savedProgress) : { completedDays: 0 };
-      
-      progress.completedDays += 1;
-      progress.lastUnlockTime = new Date().toISOString();
-
-      await AsyncStorage.setItem(key, JSON.stringify(progress));
-    } catch (error) {
-      console.error("Error saving progress:", error);
-    }
-  };
 
   const formatTime = (seconds) => {
     const minutes = Math.floor(seconds / 60);
@@ -31,17 +28,95 @@ const WorkoutCompletedScreen = ({ route, navigation }) => {
     return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
   };
 
+  const saveWorkoutProgress = async () => {
+    setIsSaving(true);
+    try {
+      const userInfo = await getUserInfo();
+      if (!userInfo || !userInfo.token) {
+        throw new Error("No user token found");
+      }
+
+      const userId = userInfo.token;
+      const progressKey = `plan_progress_${userId}_${planId}`;
+      
+      const savedProgress = await AsyncStorage.getItem(progressKey);
+      let progress = savedProgress ? JSON.parse(savedProgress) : { 
+        completedDays: 0,
+        lastUnlockTime: null,
+        workoutHistory: []
+      };
+      
+      progress.completedDays += 1;
+      progress.lastUnlockTime = new Date().toISOString();
+      
+      const workoutData = {
+        date: new Date().toISOString(),
+        duration: totalTime,
+        calories: calories,
+        exercisesCompleted: exercises.length,
+        week: week,
+        day: day
+      };
+      
+      if (!progress.workoutHistory) {
+        progress.workoutHistory = [];
+      }
+      progress.workoutHistory.push(workoutData);
+
+      await AsyncStorage.setItem(progressKey, JSON.stringify(progress));
+
+      EventRegister.emit('workoutCompleted', {
+        planId: planId,
+        completedDays: progress.completedDays,
+        workoutData: workoutData
+      });
+
+    } catch (error) {
+      console.error("Error saving workout progress:", error);
+      Alert.alert(
+        "Error",
+        "Failed to save workout progress. Please try again.",
+        [{ text: "OK" }]
+      );
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleFeedbackSelect = (feedback) => {
+    setSelectedFeedback(feedback);
+  };
+
+  const handleShare = () => {
+    Alert.alert("Share", "Share functionality will be implemented here");
+  };
+
+  const handleFinish = () => {
+    navigation.replace('BottomTabs'); 
+  };
+
+  if (isSaving) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#FD6300" />
+        <Text style={styles.loadingText}>Saving your progress...</Text>
+      </View>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity>
+        <TouchableOpacity onPress={handleShare}>
           <Text style={styles.shareText}>SHARE</Text>
         </TouchableOpacity>
       </View>
+
       <View style={styles.content}>
         <Text style={styles.title}>WORKOUT COMPLETED!</Text>
-        <Text style={styles.subtitle}>DAY 1</Text>
-        <Text style={styles.workoutName}>STRONGER LOWER BODY</Text>
+        <Text style={styles.subtitle}>DAY {day}</Text>
+        <Text style={styles.workoutName}>WEEK {week} COMPLETED</Text>
+
         <View style={styles.statsContainer}>
           <View style={styles.statItem}>
             <Text style={styles.statValue}>{exercises.length}</Text>
@@ -56,25 +131,38 @@ const WorkoutCompletedScreen = ({ route, navigation }) => {
             <Text style={styles.statLabel}>Duration</Text>
           </View>
         </View>
-        <Text style={styles.feedbackTitle}>How do you feel</Text>
+
+        <Text style={styles.feedbackTitle}>How do you feel?</Text>
         <View style={styles.feedbackContainer}>
-          <TouchableOpacity style={styles.feedbackButton}>
-            <Icon name="layers" type="feather" size={24} color="#FFF" />
-            <Text style={styles.feedbackText}>Hard</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.feedbackButton}>
-            <Icon name="layers" type="feather" size={24} color="#FFF" />
-            <Text style={styles.feedbackText}>Just right</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.feedbackButton}>
-            <Icon name="layers" type="feather" size={24} color="#FFF" />
-            <Text style={styles.feedbackText}>Easy</Text>
-          </TouchableOpacity>
+          {['Hard', 'Just right', 'Easy'].map((feedback) => (
+            <TouchableOpacity 
+              key={feedback}
+              style={[
+                styles.feedbackButton,
+                selectedFeedback === feedback && styles.selectedFeedbackButton
+              ]}
+              onPress={() => handleFeedbackSelect(feedback)}
+            >
+              <Icon 
+                name="layers" 
+                type="feather" 
+                size={24} 
+                color={selectedFeedback === feedback ? '#FD6300' : '#FFF'} 
+              />
+              <Text style={[
+                styles.feedbackText,
+                selectedFeedback === feedback && styles.selectedFeedbackText
+              ]}>
+                {feedback}
+              </Text>
+            </TouchableOpacity>
+          ))}
         </View>
       </View>
+
       <TouchableOpacity 
         style={styles.finishButton}
-        onPress={() => navigation.navigate('BottomTabs')}
+        onPress={handleFinish}
       >
         <Text style={styles.finishButtonText}>FINISH</Text>
       </TouchableOpacity>
@@ -87,9 +175,20 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#000',
   },
+  loadingContainer: {
+    flex: 1,
+    backgroundColor: '#000',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    color: '#FFF',
+    marginTop: 10,
+    fontSize: 16,
+  },
   header: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-end',
     alignItems: 'center',
     padding: 16,
   },
@@ -126,9 +225,11 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     width: '100%',
     marginTop: 40,
+    paddingHorizontal: 20,
   },
   statItem: {
     alignItems: 'center',
+    flex: 1,
   },
   statValue: {
     color: '#FFF',
@@ -144,19 +245,32 @@ const styles = StyleSheet.create({
     color: '#FFF',
     fontSize: 18,
     marginTop: 40,
+    marginBottom: 20,
   },
   feedbackContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     width: '100%',
-    marginTop: 20,
+    paddingHorizontal: 20,
   },
   feedbackButton: {
     alignItems: 'center',
+    padding: 15,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#333',
+    width: '30%',
+  },
+  selectedFeedbackButton: {
+    borderColor: '#FD6300',
+    backgroundColor: 'rgba(253, 99, 0, 0.1)',
   },
   feedbackText: {
     color: '#FFF',
     marginTop: 5,
+  },
+  selectedFeedbackText: {
+    color: '#FD6300',
   },
   finishButton: {
     backgroundColor: '#FD6300',

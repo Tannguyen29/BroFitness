@@ -29,21 +29,18 @@ const BottomNavigation = () => {
           setIsLoading(false);
           return;
         }
-
         const response = await axios.get(`${API_BASE_URL}/user-info`, {
           headers: { 'x-auth-token': token }
         });
 
-        console.log('User role from API:', response.data.role);
         setUserRole(response.data.role);
       } catch (error) {
         console.error('Error fetching user role:', error);
-        // Log more detailed error information
         if (error.response) {
           console.log('Error response:', error.response.data);
           console.log('Error status:', error.response.status);
         }
-        setUserRole('free'); // Fallback to free on error
+        setUserRole('free');
       } finally {
         setIsLoading(false);
       }
@@ -52,26 +49,21 @@ const BottomNavigation = () => {
     fetchUserRole();
   }, []);
 
-  // Don't render navigation until role is loaded
   if (isLoading) {
-    return null; // Or return a loading spinner
+    return null;
   }
 
-  const getTabScreens = () => {
-    console.log('Current user role:', userRole); // Debug log
-    
+  const getTabScreens = () => {    
     const screens = [
       <Tab.Screen key="MainPage" name="MainPage" component={MainPage} />,
       <Tab.Screen key="Nutrition" name="Nutrition" component={Nutrition} />,
       <Tab.Screen key="Personal" name="Personal" component={Personal} />,
     ];
 
-    // Add Calendar screen for PT role
     if (userRole === 'PT') {
       screens.push(<Tab.Screen key="Calendar" name="Calendar" component={Calendars} />);
     }
 
-    // Add Profile screen last
     screens.push(<Tab.Screen key="Profile" name="Profile" component={Profiles} />);
 
     return screens;
