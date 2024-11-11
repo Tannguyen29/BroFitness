@@ -83,6 +83,14 @@ const Profile = () => {
           </View>
         </View>
         <View style={styles.profileoption}>
+        {userData.role === 'free' && (
+            <TouchableOpacity 
+              style={[styles.optionItem, styles.upgradeButton]} 
+              onPress={() => navigation.navigate('PremiumPlans')}
+            >
+              <Text style={[styles.optionText, styles.upgradeText]}>Upgrade to Premium</Text>
+            </TouchableOpacity>
+          )}
         <TouchableOpacity style={styles.optionItem} onPress={() => navigation.navigate('ProfileEdit')}>
             <Icon name="user" size={24} color="#FD6300" style={styles.optionIcon} />
             <Text style={styles.optionText}>Profile</Text>
@@ -214,6 +222,17 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
   },
+  upgradeButton: {
+  backgroundColor: '#2c2c2e',
+  marginHorizontal: 20,
+  marginVertical: 10,
+  borderRadius: 10,
+  borderWidth: 1,
+  borderColor: '#FFD700',
+},
+upgradeText: {
+  color: '#FFD700',
+},
 });
 
 export default Profile;
