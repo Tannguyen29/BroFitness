@@ -24,6 +24,9 @@ import FoodSelectionScreen from '../../components/FoodSelectionScreen'
 import FoodDetail from '../../components/FoodDetailScreen'
 import SetupCompletionScreen from '../screen/SetupCompletionScreen'
 import MyMeal from '../screen/MyMeal'
+import PremiumPlans from '../../components/PremiumPlans'
+import PaymentMethodScreen from '../screen/PaymentMethodScreen';
+import PaymentScreen from '../screen/PaymentScreen';
 import { API_BASE_URL } from '@env';
 
 const Stack = createNativeStackNavigator();
@@ -84,6 +87,9 @@ const AppNavigation = ({ initialRoute }) => {
         <Stack.Screen name="FoodDetail" component={FoodDetail} options={{ headerShown: false }}/>
         <Stack.Screen name="SetupCompletion" component={SetupCompletionScreen} options={{ headerShown: false }}/>
         <Stack.Screen name="MyMeal" component={MyMeal} options={{ headerShown: false }}/>
+        <Stack.Screen name="PremiumPlans" component={PremiumPlans} options={{ headerShown: false }}/>
+        <Stack.Screen name="PaymentMethod" component={PaymentMethodScreen} options={{ headerShown: false }}/>
+        <Stack.Screen name="PaymentDetails" component={PaymentScreen} options={{ headerShown: false }}/>
       </Stack.Navigator>
     </NavigationContainer>
   );
