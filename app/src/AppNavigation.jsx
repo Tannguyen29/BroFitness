@@ -27,6 +27,8 @@ import MyMeal from '../screen/MyMeal'
 import PremiumPlans from '../../components/PremiumPlans'
 import PaymentMethodScreen from '../screen/PaymentMethodScreen';
 import PaymentScreen from '../screen/PaymentScreen';
+import CreatePlan from '../screen/CreatePlan'
+import ExerciseSelector from '../../components/ExerciseSelector'
 import { API_BASE_URL } from '@env';
 
 const Stack = createNativeStackNavigator();
@@ -90,6 +92,8 @@ const AppNavigation = ({ initialRoute }) => {
         <Stack.Screen name="PremiumPlans" component={PremiumPlans} options={{ headerShown: false }}/>
         <Stack.Screen name="PaymentMethod" component={PaymentMethodScreen} options={{ headerShown: false }}/>
         <Stack.Screen name="PaymentDetails" component={PaymentScreen} options={{ headerShown: false }}/>
+        <Stack.Screen name="CreatePlan" component={CreatePlan} options={{ headerShown: false }}/>
+        <Stack.Screen name="ExerciseSelector" component={ExerciseSelector} options={{ headerShown: false }}/>
       </Stack.Navigator>
     </NavigationContainer>
   );
