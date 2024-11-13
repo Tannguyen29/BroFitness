@@ -6,7 +6,8 @@ import Profiles from '../(tabs)/profile';
 import Calendars from '../(tabs)/Calendar';
 import Nutrition from '../(tabs)/Nutrition';
 import Personal from '../(tabs)/Personal';
-import { Home, Profile, Calendar, Discover, TaskSquare } from 'iconsax-react-native';
+import PTPlans from '../(tabs)/PTPlans'; 
+import { Home, Profile, Calendar, Discover, TaskSquare, Edit } from 'iconsax-react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import { API_BASE_URL } from '@env';
@@ -24,7 +25,6 @@ const BottomNavigation = () => {
         const token = await AsyncStorage.getItem('userToken');
         
         if (!token) {
-          console.log('No token found');
           setUserRole('free');
           setIsLoading(false);
           return;
@@ -36,10 +36,6 @@ const BottomNavigation = () => {
         setUserRole(response.data.role);
       } catch (error) {
         console.error('Error fetching user role:', error);
-        if (error.response) {
-          console.log('Error response:', error.response.data);
-          console.log('Error status:', error.response.status);
-        }
         setUserRole('free');
       } finally {
         setIsLoading(false);
@@ -57,11 +53,15 @@ const BottomNavigation = () => {
     const screens = [
       <Tab.Screen key="MainPage" name="MainPage" component={MainPage} />,
       <Tab.Screen key="Nutrition" name="Nutrition" component={Nutrition} />,
-      <Tab.Screen key="Personal" name="Personal" component={Personal} />,
     ];
 
     if (userRole === 'PT') {
-      screens.push(<Tab.Screen key="Calendar" name="Calendar" component={Calendars} />);
+      screens.push(
+        <Tab.Screen key="Plans" name="Plans" component={PTPlans} />,
+        <Tab.Screen key="Calendar" name="Calendar" component={Calendars} />
+      );
+    } else {
+      screens.push(<Tab.Screen key="Personal" name="Personal" component={Personal} />);
     }
 
     screens.push(<Tab.Screen key="Profile" name="Profile" component={Profiles} />);
@@ -83,6 +83,8 @@ const BottomNavigation = () => {
             return <Profile size={size} color={focused ? 'coral' : "#676767"} />;
           } else if (route.name === 'Personal') {
             return <TaskSquare size={size} color={focused ? 'coral' : "#676767"} />;
+          } else if (route.name === 'Plans') {
+            return <Edit size={size} color={focused ? 'coral' : "#676767"} />;
           } else {
             return <Discover size={size} color={focused ? 'coral' : "#676767"} />;
           }
@@ -90,20 +92,16 @@ const BottomNavigation = () => {
         tabBarLabel: ({ focused }) => {
           if (!focused) return null;
 
-          let labelText;
-          if (route.name === 'MainPage') {
-            labelText = 'Home';
-          } else if (route.name === 'Profile') {
-            labelText = 'Profile';
-          } else if (route.name === 'Calendar') {
-            labelText = 'Calendar';
-          } else if (route.name === 'Personal') {
-            labelText = 'Personal';
-          } else {
-            labelText = 'Nutrition';
-          }
-
-          return <Text style={{ fontSize: 12, fontWeight: 'bold', color: focused ? 'coral' : "#676767" }}>{labelText}</Text>;
+          let labelText = route.name === 'MainPage' ? 'Home' : route.name;
+          return (
+            <Text style={{ 
+              fontSize: 12, 
+              fontWeight: 'bold', 
+              color: focused ? 'coral' : "#676767" 
+            }}>
+              {labelText}
+            </Text>
+          );
         },
         tabBarItemStyle: {
           flexDirection: 'column',
