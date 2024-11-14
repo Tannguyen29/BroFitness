@@ -6,6 +6,7 @@ import { Calendar } from 'react-native-calendars';
 import moment from 'moment';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { getUserInfo } from '../../config/api';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 const DateSelector = ({ selectedDate, onDateChange }) => {
   const [showCalendar, setShowCalendar] = useState(false);
 
@@ -188,8 +189,23 @@ const ProgressItem = ({ icon, value, unit, max, color }) => (
 const MealItem = ({ title, calories, items }) => {
   const navigation = useNavigation();
 
-  const handleAddFood = () => {
-    navigation.navigate('FoodSelectionScreen', { mealType: title });
+  const handleAddFood = async () => {
+    try {
+      const userToken = await AsyncStorage.getItem('userToken');
+      console.log('mealtype:', title);
+      console.log('userToken:', userToken);
+  
+      if (userToken) {
+        // Lưu mealType vào AsyncStorage
+        await AsyncStorage.setItem('currentMealType', title);
+        
+        navigation.navigate('FoodSelectionScreen');
+      } else {
+        Alert.alert('Error', 'Please login to add food');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+    }
   };
 
   return (

@@ -32,9 +32,8 @@ export const saveUserInfo = async (token, name, personalInfoCompleted) => {
 export const getUserInfo = async () => {
   try {
     const token = await AsyncStorage.getItem('userToken');
-    
     if (token) {
-      const response = await apiClient.get('/user-info', {
+      const response = await apiClient.get(`${API_BASE_URL}/user-info`, {
         headers: { 'x-auth-token': token }
       });
       

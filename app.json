@@ -20,6 +20,11 @@
     },
     "plugins": [
       "expo-font"
-    ]
+    ],
+    "newArchEnabled": true,
+    "experiments": {
+      "tsconfigPaths": true,
+      "bridgeless": true  
+    }
   }
 }
