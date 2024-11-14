@@ -37,22 +37,23 @@ const FoodDetailScreen = ({ route }) => {
   };
 
   const handleAddFood = () => {
-    const multiplier = numberOfServings;
-  
-    const addedFood = {
+    if (!nutritionInfo) return;
+    
+    const newFood   = {
       name: foodItem.name,
-      calories: Math.round(nutritionInfo.calories * multiplier) || 0,
-      protein: Math.round(getNutrientValue('PROCNT') * multiplier),
-      fat: Math.round(getNutrientValue('FAT') * multiplier),
-      carbs: Math.round(getNutrientValue('CHOCDF') * multiplier),
+      calories: Math.round(nutritionInfo.calories * numberOfServings),
+      protein: Math.round(getNutrientValue('PROCNT') * numberOfServings),
+      fat: Math.round(getNutrientValue('FAT') * numberOfServings),
+      carbs: Math.round(getNutrientValue('CHOCDF') * numberOfServings),
       servingSize,
       servingUnit,
       numberOfServings,
     };
-  
-    console.log('Added Food before navigating:', addedFood);
-  
-    navigation.navigate('FoodSelection', { addedFood });
+
+    // Pass the food data back and update selectedFoods
+    navigation.navigate('FoodSelectionScreen', {
+      selectedFood: newFood
+    });
   };
   
   const getNutrientValue = (nutrient, defaultValue = 0) => {

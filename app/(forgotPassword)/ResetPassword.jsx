@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, TouchableWithoutFeedback, Keyboard } from 'react-native';
 import { resetPassword } from '../../config/api';
-import Icon from 'react-native-vector-icons/Ionicons'; // Sửa lại dòng import này
+import Icon from 'react-native-vector-icons/Ionicons'; 
 
 const ResetPassword = ({ route, navigation }) => {
   const { email } = route.params;
