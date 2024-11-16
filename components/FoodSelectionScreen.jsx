@@ -1,19 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, FlatList, Image } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, FlatList, Image, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import LottieView from 'lottie-react-native'; 
 import { foodDatabaseAppId, foodDatabaseAppKey } from '@env';
-
+import axios from 'axios';
+import { nutritionAppId, nutritionAppKey,API_BASE_URL } from '@env';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 const FoodSelectionScreen = ({ route }) => {
-  const { mealType } = route.params;
   const navigation = useNavigation();
   const [searchQuery, setSearchQuery] = useState('');
   const [foodSuggestions, setFoodSuggestions] = useState([]);
   const [history, setHistory] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedFoods, setSelectedFoods] = useState([]);
-
+  const [currentMealType, setCurrentMealType] = useState('');
   useEffect(() => {
     setHistory([
       { name: 'White rice, cooked', calories: 204, amount: '1 cup' },
@@ -22,6 +23,44 @@ const FoodSelectionScreen = ({ route }) => {
     ]);
     fetchInitialSuggestions();
   }, []);
+  useEffect(() => {
+    console.log('Route params:', route.params);
+  }, []);
+  useEffect(() => {
+    const getMealType = async () => {
+      try {
+        const savedMealType = await AsyncStorage.getItem('currentMealType');
+        if (savedMealType) {
+          setCurrentMealType(savedMealType);
+          console.log('Loaded meal type:', savedMealType);
+        }
+      } catch (error) {
+        console.error('Error loading meal type:', error);
+      }
+    };
+
+    getMealType();
+  }, []);
+  const fetchNutritionInfo = async (foodName) => {
+    try {
+      const ingredient = `1 serving ${foodName}`;
+      const response = await fetch(
+        `https://api.edamam.com/api/nutrition-data?app_id=${nutritionAppId}&app_key=${nutritionAppKey}&ingr=${encodeURIComponent(ingredient)}`
+      );
+      const data = await response.json();
+      if (data.totalWeight === 0) {
+        console.log('No nutrition data found for this food item');
+        return null;
+      }
+      return data;
+    } catch (error) {
+      console.error('Error fetching nutrition info:', error);
+      return null;
+    }
+  };
+  const getNutrientValue = (nutritionInfo, nutrient, defaultValue = 0) => {
+    return Math.round(nutritionInfo?.totalNutrients?.[nutrient]?.quantity) || defaultValue;
+  };
 
   const fetchInitialSuggestions = async () => {
     setIsLoading(true); 
@@ -71,22 +110,159 @@ const FoodSelectionScreen = ({ route }) => {
     }
   };
 
-  const handleAddFood = (food) => {
-    navigation.navigate('Nutrition', {
-      mealType,
-      addedFood: {
-        name: food.name,
-        calories: food.calories,
-        amount: food.amount,
-      }
+  const handleAddFood = async (food) => {
+    // Tìm kiếm món ăn trong danh sách đã chọn
+    const existingFoodIndex = selectedFoods.findIndex(
+      item => item.name === food.name && 
+              item.servingSize === '1' && 
+              item.servingUnit === 'serving'
+    );
+
+    if (existingFoodIndex !== -1) {
+      // Nếu món ăn đã tồn tại, tăng số lượng serving
+      const updatedFoods = [...selectedFoods];
+      const existingFood = updatedFoods[existingFoodIndex];
       
-    });
+      const newNumberOfServings = existingFood.numberOfServings + 1;
+      
+      updatedFoods[existingFoodIndex] = {
+        ...existingFood,
+        numberOfServings: newNumberOfServings,
+        calories: Math.round((existingFood.calories / existingFood.numberOfServings) * newNumberOfServings),
+        protein: Math.round((existingFood.protein / existingFood.numberOfServings) * newNumberOfServings),
+        fat: Math.round((existingFood.fat / existingFood.numberOfServings) * newNumberOfServings),
+        carbs: Math.round((existingFood.carbs / existingFood.numberOfServings) * newNumberOfServings),
+      };
+      
+      setSelectedFoods(updatedFoods);
+    } else {
+      // Nếu là món ăn mới, thêm vào danh sách
+      const nutritionInfo = await fetchNutritionInfo(food.name);
+      
+      const newSelectedFood = {
+        name: food.name,
+        calories: nutritionInfo ? Math.round(nutritionInfo.calories) : food.calories,
+        protein: nutritionInfo ? getNutrientValue(nutritionInfo, 'PROCNT') : 0,
+        fat: nutritionInfo ? getNutrientValue(nutritionInfo, 'FAT') : 0,
+        carbs: nutritionInfo ? getNutrientValue(nutritionInfo, 'CHOCDF') : 0,
+        servingSize: '1',
+        servingUnit: 'serving',
+        numberOfServings: 1,
+      };
+      
+      setSelectedFoods(prev => [...prev, newSelectedFood]);
+    }
   };
 
   const handleFoodSelection = (food) => {
-    navigation.navigate('FoodDetail', { foodItem: food });
+    navigation.navigate('FoodDetail', {
+      foodItem: food,
+      mealType: currentMealType
+    });
   };
+  
 
+  useEffect(() => {
+    console.log('Selected Foods Updated:', selectedFoods);
+  }, [selectedFoods]);
+
+  useEffect(() => {
+    if (route.params?.selectedFood) {
+      const newFood = route.params.selectedFood;
+      // Tìm kiếm món ăn trong danh sách đã chọn với cùng serving size và unit
+      const existingFoodIndex = selectedFoods.findIndex(
+        item => item.name === newFood.name && 
+                item.servingUnit === newFood.servingUnit
+      );
+
+      if (existingFoodIndex !== -1) {
+        // Nếu món ăn đã tồn tại với cùng serving size và unit, cộng dồn số lượng
+        const updatedFoods = [...selectedFoods];
+        const existingFood = updatedFoods[existingFoodIndex];
+        
+        const newNumberOfServings = existingFood.numberOfServings + newFood.numberOfServings;
+        
+        updatedFoods[existingFoodIndex] = {
+          ...existingFood,
+          numberOfServings: newNumberOfServings,
+          calories: Math.round((existingFood.calories / existingFood.numberOfServings) * newNumberOfServings),
+          protein: Math.round((existingFood.protein / existingFood.numberOfServings) * newNumberOfServings),
+          fat: Math.round((existingFood.fat / existingFood.numberOfServings) * newNumberOfServings),
+          carbs: Math.round((existingFood.carbs / existingFood.numberOfServings) * newNumberOfServings),
+        };
+        
+        setSelectedFoods(updatedFoods);
+      } else {
+        
+        setSelectedFoods(prev => [...prev, newFood]);
+      }
+    }
+  }, [route.params?.selectedFood]);
+
+  const handleSaveMeal = async () => {
+    try {
+      const token = await AsyncStorage.getItem('userToken');
+      const currentMealType = await AsyncStorage.getItem('currentMealType');
+      const currentMealDate = await AsyncStorage.getItem('currentMealDate');
+      
+      // Add detailed logging
+      console.log('Saving meal with date (raw):', currentMealDate);
+      console.log('Date object created:', new Date(currentMealDate));
+      console.log('ISO string:', new Date(currentMealDate).toISOString());
+      
+      // Kiểm tra điều kiện trước khi gọi API
+      if (!currentMealType || selectedFoods.length === 0) {
+        Alert.alert('Error', 'Please select meal type and add foods');
+        return;
+      }
+  
+      if (!currentMealDate) {
+        Alert.alert('Error', 'Meal date not found');
+        return;
+      }
+
+      // Ensure date is properly formatted as ISO string
+      const formattedDate = new Date(currentMealDate).toISOString();
+  
+      const response = await axios.post(`${API_BASE_URL}/savemeals`, {
+        mealType: currentMealType,
+        foods: selectedFoods,
+        date: formattedDate // Send as ISO string
+      }, {
+        headers: {
+          'x-auth-token': token,
+          'Content-Type': 'application/json'
+        },
+      });
+      
+      console.log('Request payload:', {
+        mealType: currentMealType,
+        foods: selectedFoods.length,
+        date: formattedDate
+      });
+      console.log('Response:', response.data);
+      
+      // Clear selected foods và mealType sau khi save thành công
+      setSelectedFoods([]);
+      await Promise.all([
+        AsyncStorage.removeItem('currentMealType'),
+        AsyncStorage.removeItem('currentMealDate')
+      ]); // Xóa cả mealType và date khỏi storage
+      
+      Alert.alert('Success', 'Meal saved successfully', [
+        {
+          text: 'OK',
+          onPress: () => navigation.goBack() // Quay về màn hình trước
+        }
+      ]);
+      
+    } catch (error) {
+      console.error('Error saving meal:', error);
+      console.error('Error details:', error.response?.data);
+      const errorMessage = error.response?.data?.message || 'Failed to save meal. Please try again later.';
+      Alert.alert('Error', errorMessage);
+    }
+  };
   const renderFoodItem = ({ item, section }) => (
     <TouchableOpacity style={styles.foodItem} onPress={() => handleFoodSelection(item)}>
       <View style={styles.foodItemLeft}>
@@ -103,7 +279,8 @@ const FoodSelectionScreen = ({ route }) => {
       </TouchableOpacity>
     </TouchableOpacity>
   );
-
+  
+  
   return (
     <View style={styles.container}>
       {isLoading ? (
@@ -118,10 +295,10 @@ const FoodSelectionScreen = ({ route }) => {
       ) : (
         <>
           <View style={styles.header}>
-            <TouchableOpacity onPress={() => navigation.goBack()}>
+            <TouchableOpacity onPress={handleSaveMeal}>
               <Ionicons name="arrow-back" size={24} color="#FD6300" />
             </TouchableOpacity>
-            <Text style={styles.title}>{mealType}</Text>
+            <Text style={styles.title}>{currentMealType}</Text>
           </View>
           
           <View style={styles.searchContainer}>

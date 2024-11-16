@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Modal } from 'react-native';
+import { StyleSheet, Text, View, ScrollView, TouchableOpacity, Modal, Alert } from 'react-native';
 import { AnimatedCircularProgress } from 'react-native-circular-progress';
 import { Ionicons } from '@expo/vector-icons';
 import { Calendar } from 'react-native-calendars';
 import moment from 'moment';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import { getUserInfo } from '../../config/api';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios from 'axios';
+import {API_BASE_URL } from '@env';
 const DateSelector = ({ selectedDate, onDateChange }) => {
   const [showCalendar, setShowCalendar] = useState(false);
 
@@ -79,11 +82,14 @@ const DateSelector = ({ selectedDate, onDateChange }) => {
   );
 };
 
-const MacroGoals = ({ carbs, protein, fat, total }) => {
+const MacroGoals = ({ carbs, protein, fat, calories, totalCarbs, totalProtein, totalFat, totalCalories }) => {
   const [selectedTab, setSelectedTab] = useState('Macros');
   const tabs = ['Macros', 'Nutrients', 'Calories'];
 
-  const calculateFill = (value) => (value / (carbs + protein + fat)) * 100;
+  const calculateFill = (value, total) => {
+    if (!total) return 0;
+    return (value / total) * 100;
+  };
 
   return (
     <View style={styles.macroGoalsContainer}>
@@ -103,7 +109,7 @@ const MacroGoals = ({ carbs, protein, fat, total }) => {
           size={150}
           width={15}
           backgroundWidth={15}
-          fill={100}
+          fill={calculateFill(calories, totalCalories)}
           tintColor="#7DDA58"
           backgroundColor="#F0F0F0"
           arcSweepAngle={360}
@@ -112,7 +118,7 @@ const MacroGoals = ({ carbs, protein, fat, total }) => {
         >
           {() => (
             <View style={styles.macroTextContainer}>
-              <Text style={styles.macroTotalValue}>{total}</Text>
+              <Text style={styles.macroTotalValue}>{calories}</Text>
               <Text style={styles.macroTotalLabel}>Calories left</Text>
             </View>
           )}
@@ -121,7 +127,7 @@ const MacroGoals = ({ carbs, protein, fat, total }) => {
           size={150}
           width={15}
           backgroundWidth={5}
-          fill={calculateFill(protein)}
+          fill={calculateFill(protein, totalProtein)}
           tintColor="#E24A8B"
           backgroundColor="transparent"
           arcSweepAngle={360}
@@ -133,7 +139,7 @@ const MacroGoals = ({ carbs, protein, fat, total }) => {
           size={150}
           width={15}
           backgroundWidth={5}
-          fill={calculateFill(fat)}
+          fill={calculateFill(fat, totalFat)}
           tintColor="#E2C44A"
           backgroundColor="transparent"
           arcSweepAngle={360}
@@ -143,18 +149,18 @@ const MacroGoals = ({ carbs, protein, fat, total }) => {
         />
       </View>
       <View style={styles.macroDetailsContainer}>
-        <MacroDetail label="Carbs" value={carbs} color="#7DDA58" />
-        <MacroDetail label="Protein" value={protein} color="#E24A8B" />
-        <MacroDetail label="Fat" value={fat} color="#E2C44A" />
+        <MacroDetail label="Carbs" value={carbs} total={totalCarbs} color="#7DDA58" />
+        <MacroDetail label="Protein" value={protein} total={totalProtein} color="#E24A8B" />
+        <MacroDetail label="Fat" value={fat} total={totalFat} color="#E2C44A" />
       </View>
     </View>
   );
 };
 
-const MacroDetail = ({ label, value, color }) => (
+const MacroDetail = ({ label, value, total, color }) => (
   <View style={styles.macroDetailItem}>
     <View style={[styles.macroDetailDot, { backgroundColor: color }]} />
-    <Text style={styles.macroDetailValue}>{value}g</Text>
+    <Text style={styles.macroDetailValue}>{value}g / {total}g</Text>
     <Text style={styles.macroDetailLabel}>{label}</Text>
   </View>
 );
@@ -185,11 +191,42 @@ const ProgressItem = ({ icon, value, unit, max, color }) => (
   </View>
 );
 
-const MealItem = ({ title, calories, items }) => {
+const MealItem = ({ title, items, selectedDate }) => {
   const navigation = useNavigation();
+  
+  // Calculate total calories for this meal
+  const calories = (items || []).reduce((total, item) => 
+    total + (item.calories || 0) * (item.numberOfServings || 1), 0);
 
-  const handleAddFood = () => {
-    navigation.navigate('FoodSelectionScreen', { mealType: title });
+  useEffect(() => {
+    console.log('Selected date in MealItem changed to:', selectedDate);
+  }, [selectedDate]);
+
+  const handleAddFood = async () => {
+    try {
+      const userToken = await AsyncStorage.getItem('userToken');
+      
+      if (!selectedDate) {
+        console.error('No date selected');
+        Alert.alert('Error', 'Please select a date');
+        return;
+      }
+
+      if (userToken) {
+        await Promise.all([
+          AsyncStorage.setItem('currentMealType', title),
+          AsyncStorage.setItem('currentMealDate', selectedDate)
+        ]);
+
+        console.log('Stored date:', selectedDate);
+        navigation.navigate('FoodSelectionScreen');
+      } else {
+        Alert.alert('Error', 'Please login to add food');
+      }
+    } catch (error) {
+      console.error('Error in handleAddFood:', error);
+      Alert.alert('Error', 'Failed to process request');
+    }
   };
 
   return (
@@ -200,12 +237,14 @@ const MealItem = ({ title, calories, items }) => {
           <Ionicons name="add-circle-outline" size={24} color="#FD6300" />
         </TouchableOpacity>
       </View>
-      <Text style={styles.mealCalories}>{calories} cal</Text>
+      <Text style={styles.mealCalories}>{calories || 0} cal</Text>
       <View style={styles.itemsContainer}>
-        {items.map((item, index) => (
+        {(items || []).map((item, index) => (
           <View key={index} style={styles.foodItem}>
             <Text style={styles.foodName}>{item.name}</Text>
-            <Text style={styles.foodCalories}>{item.calories} cal</Text>
+            <Text style={styles.foodCalories}>
+              {((item.calories || 0) * (item.numberOfServings || 1)).toFixed(0)} cal
+            </Text>
           </View>
         ))}
       </View>
@@ -213,122 +252,247 @@ const MealItem = ({ title, calories, items }) => {
   );
 };
 
-const Nutrition = ({ route }) => {
+const Nutrition = () => {
   const [selectedDate, setSelectedDate] = useState(moment().format('YYYY-MM-DD'));
-  const [breakfastItems, setBreakfastItems] = useState([]);
-  const [lunchItems, setLunchItems] = useState([]);
-  const [dinnerItems, setDinnerItems] = useState([]);
-  const [caloriesLeft, setCaloriesLeft] = useState(0);
-  const totalCalories = breakfastItems.reduce((total, item) => total + (parseFloat(item.calories) || 0), 0) +
-    lunchItems.reduce((total, item) => total + (parseFloat(item.calories) || 0), 0) +
-    dinnerItems.reduce((total, item) => total + (parseFloat(item.calories) || 0), 0);
+  const [userMetrics, setUserMetrics] = useState({
+    gender: '',
+    age: 0,
+    weight: 0,
+    height: 0,
+    physicalActivityLevel: 'moderate', // default value
+    fitnessGoal: 'maintain' // default value
+  });
+  const [dailyGoals, setDailyGoals] = useState({
+    calories: 0,
+    protein: 0,
+    carbs: 0,
+    fat: 0
+  });
+  const [meals, setMeals] = useState({
+    Breakfast: { foods: [], totals: { calories: 0, protein: 0, fat: 0, carbs: 0 } },
+    Lunch: { foods: [], totals: { calories: 0, protein: 0, fat: 0, carbs: 0 } },
+    Dinner: { foods: [], totals: { calories: 0, protein: 0, fat: 0, carbs: 0 } }
+  });
 
-  const totalCarbs = breakfastItems.reduce((total, item) => total + (parseFloat(item.carbs) || 0), 0) +
-    lunchItems.reduce((total, item) => total + (parseFloat(item.carbs) || 0), 0) +
-    dinnerItems.reduce((total, item) => total + (parseFloat(item.carbs) || 0), 0);
-
-  const totalProtein = breakfastItems.reduce((total, item) => total + (parseFloat(item.protein) || 0), 0) +
-    lunchItems.reduce((total, item) => total + (parseFloat(item.protein) || 0), 0) +
-    dinnerItems.reduce((total, item) => total + (parseFloat(item.protein) || 0), 0);
-
-  const totalFat = breakfastItems.reduce((total, item) => total + (parseFloat(item.fat) || 0), 0) +
-    lunchItems.reduce((total, item) => total + (parseFloat(item.fat) || 0), 0) +
-    dinnerItems.reduce((total, item) => total + (parseFloat(item.fat) || 0), 0);
-
-  const calculateBMR = (gender, weight, height, age) => {
+  // Calculate BMR based on user metrics
+  const calculateBMR = () => {
+    const { gender, weight, height, age } = userMetrics;
     if (gender === 'male') {
-      return (10 * weight) + (6.25 * height) - (5 * age) + 5;
+      return 88.362 + (13.397 * weight) + (4.799 * height) - (5.677 * age);
     } else {
-      return (10 * weight) + (6.25 * height) - (5 * age) - 161;
+      return 447.593 + (9.247 * weight) + (3.098 * height) - (4.330 * age);
     }
   };
-  
+
+  // Calculate TDEE based on activity level
+  const calculateTDEE = () => {
+    const bmr = calculateBMR();
+    const activityMultipliers = {
+      sedentary: 1.2,
+      moderate: 1.55,
+      active: 1.725,
+    };
+    return bmr * activityMultipliers[userMetrics.physicalActivityLevel];
+  };
+
+  // Calculate calorie goal based on fitness goal
+  const calculateCalorieGoal = () => {
+    const tdee = calculateTDEE();
+    switch (userMetrics.fitnessGoal) {
+      case 'loseWeight':
+        return tdee - 500;
+      case 'buildMuscle':
+        return tdee + 300;
+      default:
+        return tdee;
+    }
+  };
+
+  // Calculate macro nutrient goals
+  const calculateMacroGoals = (totalCalories) => {
+    return {
+      protein: Math.round((totalCalories * 0.3) / 4), // 30% of calories from protein
+      carbs: Math.round((totalCalories * 0.45) / 4), // 45% of calories from carbs
+      fat: Math.round((totalCalories * 0.25) / 9), // 25% of calories from fat
+    };
+  };
+
+  // Fetch user info and calculate goals
   useEffect(() => {
-    const fetchUserInfoAndCalculateCalories = async () => {
-      const userInfo = await getUserInfo();
-  
-      if (userInfo.personalInfoCompleted) {
-        const { gender, age, weight, height } = userInfo;
-        const bmr = calculateBMR(gender, weight, height, age);
-  
-        // Calculate remaining calories and round to the nearest whole number
-        const remainingCalories = bmr - totalCalories;
-        setCaloriesLeft(remainingCalories > 0 ? Math.round(remainingCalories) : 0);
+    const fetchUserInfo = async () => {
+      const info = await getUserInfo();
+      if (info.personalInfoCompleted) {
+        setUserMetrics({
+          gender: info.gender,
+          age: info.age,
+          weight: info.weight,
+          height: info.height,
+          physicalActivityLevel: 'moderate', // You might want to store this in user profile
+          fitnessGoal: 'maintain' // You might want to store this in user profile
+        });
       }
     };
-  
-    fetchUserInfoAndCalculateCalories();
-  }, [totalCalories]);
-  
+    fetchUserInfo();
+  }, []);
 
-
+  // Calculate daily goals whenever user metrics change
   useEffect(() => {
-    if (route.params?.addedFood) {
-      const { mealType, addedFood } = route.params;
+    if (userMetrics.weight > 0) {
+      const totalCalories = calculateCalorieGoal();
+      const macros = calculateMacroGoals(totalCalories);
+      setDailyGoals({
+        calories: Math.round(totalCalories),
+        ...macros
+      });
+    }
+  }, [userMetrics]);
+
+  // Calculate consumed nutrients from meals
+  const calculateConsumed = () => {
+    if (!meals) {
+      console.log('Meals object is null or undefined');
+      return { calories: 0, protein: 0, carbs: 0, fat: 0 };
+    }
+    
+    const consumed = Object.values(meals).reduce((totals, meal) => {
+      // Check if meal and meal.foods exist
+      if (!meal || !Array.isArray(meal.foods)) {
+        console.log('Invalid meal structure:', meal);
+        return totals;
+      }
+      
+      // Calculate totals from foods array
+      const mealTotals = meal.foods.reduce((foodTotals, food) => ({
+        calories: foodTotals.calories + (food.calories || 0) * (food.numberOfServings || 1),
+        protein: foodTotals.protein + (food.protein || 0) * (food.numberOfServings || 1),
+        carbs: foodTotals.carbs + (food.carbs || 0) * (food.numberOfServings || 1),
+        fat: foodTotals.fat + (food.fat || 0) * (food.numberOfServings || 1)
+      }), { calories: 0, protein: 0, carbs: 0, fat: 0 });
   
-      const updateMealItems = (mealItems, setMealItems) => {
-        const existingFoodIndex = mealItems.findIndex(item => item.name === addedFood.name);
+      return {
+        calories: totals.calories + mealTotals.calories,
+        protein: totals.protein + mealTotals.protein,
+        carbs: totals.carbs + mealTotals.carbs,
+        fat: totals.fat + mealTotals.fat
+      };
+    }, { calories: 0, protein: 0, carbs: 0, fat: 0 });
   
-        if (existingFoodIndex !== -1) {
-          // If the food item already exists, accumulate the values
-          const updatedMealItems = mealItems.map((item, index) => {
-            if (index === existingFoodIndex) {
-              return {
-                ...item,
-                calories: Math.round(parseFloat(item.calories) + parseFloat(addedFood.calories)),
-                protein: Math.round(parseFloat(item.protein) + parseFloat(addedFood.protein)),
-                fat: Math.round(parseFloat(item.fat) + parseFloat(addedFood.fat)),
-                carbs: Math.round(parseFloat(item.carbs) + parseFloat(addedFood.carbs)),
-                numberOfServings: item.numberOfServings + addedFood.numberOfServings,
-              };
+    console.log('Calculated consumed nutrients:', consumed);
+    return consumed;
+  };
+
+  // Calculate remaining nutrients
+  const calculateRemaining = () => {
+    const consumed = calculateConsumed();
+    const remaining = {
+      calories: Math.max(0, dailyGoals.calories - consumed.calories),
+      protein: Math.max(0, dailyGoals.protein - consumed.protein),
+      carbs: Math.max(0, dailyGoals.carbs - consumed.carbs),
+      fat: Math.max(0, dailyGoals.fat - consumed.fat)
+    };
+
+    console.log('Calories Goal:', dailyGoals.calories);
+    console.log('Calories Consumed:', consumed.calories);
+    console.log('Calories Remaining:', remaining.calories);
+
+    return remaining;
+  };
+
+  // Fetch meals for selected date
+  const fetchMealByType = async (mealType, date) => {
+    try {
+      const userInfo = await getUserInfo();
+      if (!userInfo.userId || !userInfo.token) {
+        throw new Error('User authentication required');
+      }
+      const formattedDate = moment(date).format('YYYY-MM-DD');
+      const response = await axios.get(
+        `${API_BASE_URL}/meals/${formattedDate}/${mealType}`,
+        {
+          headers: { 'x-auth-token': userInfo.token }
+        }
+      );
+      
+      // Return response data directly as it already has the foods array
+      return response.data || { foods: [] };
+    } catch (error) {
+      console.log(`Error fetching ${mealType}:`, error);
+      return { foods: [] };
+    }
+  };
+
+  // Update all meals for selected date
+  useFocusEffect(
+    React.useCallback(() => {
+      const updateMeals = async () => {
+        try {
+          const [breakfast, lunch, dinner] = await Promise.all([
+            fetchMealByType('Breakfast', selectedDate),
+            fetchMealByType('Lunch', selectedDate),
+            fetchMealByType('Dinner', selectedDate)
+          ]);
+          
+          setMeals({
+            Breakfast: {
+              foods: breakfast?.foods || [],
+              totals: breakfast?.totals || { calories: 0, protein: 0, fat: 0, carbs: 0 }
+            },
+            Lunch: {
+              foods: lunch?.foods || [],
+              totals: lunch?.totals || { calories: 0, protein: 0, fat: 0, carbs: 0 }
+            },
+            Dinner: {
+              foods: dinner?.foods || [],
+              totals: dinner?.totals || { calories: 0, protein: 0, fat: 0, carbs: 0 }
             }
-            return item;
           });
-          setMealItems(updatedMealItems);
-        } else {
-          setMealItems([...mealItems, addedFood]);
+        } catch (error) {
+          console.error('Error updating meals:', error);
+          // Set default values on error
+          setMeals({
+            Breakfast: { foods: [], totals: { calories: 0, protein: 0, fat: 0, carbs: 0 } },
+            Lunch: { foods: [], totals: { calories: 0, protein: 0, fat: 0, carbs: 0 } },
+            Dinner: { foods: [], totals: { calories: 0, protein: 0, fat: 0, carbs: 0 } }
+          });
         }
       };
-  
-      if (mealType === 'Breakfast') {
-        updateMealItems(breakfastItems, setBreakfastItems);
-      } else if (mealType === 'Lunch') {
-        updateMealItems(lunchItems, setLunchItems);
-      } else if (mealType === 'Dinner') {
-        updateMealItems(dinnerItems, setDinnerItems);
-      }
-    }
-  }, [route.params?.addedFood]);
-  
+      updateMeals();
+    }, [selectedDate])
+  );
 
+  const remaining = calculateRemaining();
 
   return (
-    <ScrollView style={styles.container}>
-      <DateSelector selectedDate={selectedDate} onDateChange={setSelectedDate} />
-      <MacroGoals carbs={totalCarbs} protein={totalProtein} fat={totalFat} total={caloriesLeft} />
 
+
+<ScrollView style={styles.container}>
+      <DateSelector selectedDate={selectedDate} onDateChange={setSelectedDate} />
+      
+      <MacroGoals
+        carbs={remaining.carbs}
+        protein={remaining.protein}
+        fat={remaining.fat}
+        calories={remaining.calories}
+        totalCarbs={dailyGoals.carbs}
+        totalProtein={dailyGoals.protein}
+        totalFat={dailyGoals.fat}
+        totalCalories={dailyGoals.calories}
+      />
       <View style={styles.progressContainer}>
         <ProgressItem icon="water-outline" value={54.7} unit="FL OZ" max={100} color="#4A90E2" />
         <ProgressItem icon="footsteps-outline" value={6876} unit="Steps" max={10000} color="#E24A8B" />
       </View>
+      {Object.entries(meals).map(([mealType, meal]) => (
+        <MealItem
+          key={mealType}
+          title={mealType}
+          calories={meal.totals.calories}
+          items={meal.foods}
+          selectedDate={selectedDate}
+        />
+        
+      ))}
 
-      <MealItem
-        title="Breakfast"
-        calories={breakfastItems.reduce((total, item) => total + item.calories, 0)}
-        items={breakfastItems}
-      />
-
-      <MealItem
-        title="Lunch"
-        calories={lunchItems.reduce((total, item) => total + item.calories, 0)}
-        items={lunchItems}
-      />
-
-      <MealItem
-        title="Dinner"
-        calories={dinnerItems.reduce((total, item) => total + item.calories, 0)}
-        items={dinnerItems}
-      />
     </ScrollView>
   );
 };
@@ -534,7 +698,7 @@ const styles = StyleSheet.create({
   foodCalories: {
     fontSize: 14,
     color: 'white',
-  },  
+  },
 });
 
 export default Nutrition;
