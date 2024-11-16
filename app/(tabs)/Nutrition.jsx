@@ -86,11 +86,17 @@ const MacroGoals = ({ carbs, protein, fat, calories, totalCarbs, totalProtein, t
   const [selectedTab, setSelectedTab] = useState('Macros');
   const tabs = ['Macros', 'Nutrients', 'Calories'];
 
-  const calculateFill = (value, total) => {
-    if (!total) return 0;
-    return (value / total) * 100;
+  const calculateConsumed = (total, remaining) => {
+    return total - remaining;
   };
 
+  const calculateFillPercentage = (consumed, total) => {
+    if (!total) return 0;
+    return (consumed / total) * 100;
+  };
+
+  const consumedCalories = calculateConsumed(totalCalories, calories);
+  
   return (
     <View style={styles.macroGoalsContainer}>
       <View style={styles.tabContainer}>
@@ -109,17 +115,20 @@ const MacroGoals = ({ carbs, protein, fat, calories, totalCarbs, totalProtein, t
           size={150}
           width={15}
           backgroundWidth={15}
-          fill={calculateFill(calories, totalCalories)}
+          fill={calculateFillPercentage(consumedCalories, totalCalories)}
           tintColor="#7DDA58"
           backgroundColor="#F0F0F0"
           arcSweepAngle={360}
-          rotation={0}
+          rotation={180} // Thay đổi rotation thành 180 để chạy ngược chiều
           lineCap="round"
         >
           {() => (
             <View style={styles.macroTextContainer}>
-              <Text style={styles.macroTotalValue}>{calories}</Text>
-              <Text style={styles.macroTotalLabel}>Calories left</Text>
+              <Text style={styles.macroConsumedValue}>
+                {consumedCalories}
+              </Text>
+              <Text style={styles.macroTotalLabel}>/{totalCalories}</Text>
+              <Text style={styles.macroUnitLabel}>calories</Text>
             </View>
           )}
         </AnimatedCircularProgress>
@@ -127,11 +136,11 @@ const MacroGoals = ({ carbs, protein, fat, calories, totalCarbs, totalProtein, t
           size={150}
           width={15}
           backgroundWidth={5}
-          fill={calculateFill(protein, totalProtein)}
+          fill={calculateFillPercentage(calculateConsumed(totalProtein, protein), totalProtein)}
           tintColor="#E24A8B"
           backgroundColor="transparent"
           arcSweepAngle={360}
-          rotation={0}
+          rotation={180} // Thay đổi rotation thành 180 để chạy ngược chiều
           lineCap="round"
           style={styles.overlayProgress}
         />
@@ -139,28 +148,47 @@ const MacroGoals = ({ carbs, protein, fat, calories, totalCarbs, totalProtein, t
           size={150}
           width={15}
           backgroundWidth={5}
-          fill={calculateFill(fat, totalFat)}
+          fill={calculateFillPercentage(calculateConsumed(totalFat, fat), totalFat)}
           tintColor="#E2C44A"
           backgroundColor="transparent"
           arcSweepAngle={360}
-          rotation={0}
+          rotation={180} // Thay đổi rotation thành 180 để chạy ngược chiều
           lineCap="round"
           style={styles.overlayProgress}
         />
       </View>
       <View style={styles.macroDetailsContainer}>
-        <MacroDetail label="Carbs" value={carbs} total={totalCarbs} color="#7DDA58" />
-        <MacroDetail label="Protein" value={protein} total={totalProtein} color="#E24A8B" />
-        <MacroDetail label="Fat" value={fat} total={totalFat} color="#E2C44A" />
+        <MacroDetail 
+          label="Carbs" 
+          consumed={calculateConsumed(totalCarbs, carbs)}
+          total={totalCarbs}
+          color="#7DDA58" 
+        />
+        <MacroDetail 
+          label="Protein" 
+          consumed={calculateConsumed(totalProtein, protein)}
+          total={totalProtein}
+          color="#E24A8B" 
+        />
+        <MacroDetail 
+          label="Fat" 
+          consumed={calculateConsumed(totalFat, fat)}
+          total={totalFat}
+          color="#E2C44A" 
+        />
       </View>
     </View>
   );
 };
 
-const MacroDetail = ({ label, value, total, color }) => (
+const MacroDetail = ({ label, consumed, total, color }) => (
   <View style={styles.macroDetailItem}>
     <View style={[styles.macroDetailDot, { backgroundColor: color }]} />
-    <Text style={styles.macroDetailValue}>{value}g / {total}g</Text>
+    <View style={styles.macroValueContainer}>
+      <Text style={styles.macroDetailValue}>{consumed}</Text>
+      <Text style={styles.macroDetailDivider}>/</Text>
+      <Text style={styles.macroDetailTotal}>{total}</Text>
+    </View>
     <Text style={styles.macroDetailLabel}>{label}</Text>
   </View>
 );
@@ -544,7 +572,6 @@ const styles = StyleSheet.create({
     padding: 20,
     margin: 10,
     alignItems: 'center',
-
   },
   tabContainer: {
     flexDirection: 'row',
@@ -580,7 +607,7 @@ const styles = StyleSheet.create({
   macroTextContainer: {
     alignItems: 'center',
   },
-  macroTotalValue: {
+  macroConsumedValue: {
     fontSize: 36,
     fontWeight: 'bold',
     color: 'white',
@@ -588,6 +615,11 @@ const styles = StyleSheet.create({
   macroTotalLabel: {
     fontSize: 14,
     color: 'white',
+  },
+  macroUnitLabel: {
+    fontSize: 14,
+    color: 'white',
+    marginTop: 2,
   },
   macroDetailsContainer: {
     flexDirection: 'row',
@@ -604,10 +636,24 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     marginBottom: 5,
   },
+  macroValueContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 4,
+  },
   macroDetailValue: {
     fontSize: 16,
     fontWeight: 'bold',
     color: 'white',
+  },
+  macroDetailDivider: {
+    fontSize: 16,
+    color: 'white',
+    marginHorizontal: 4,
+  },
+  macroDetailTotal: {
+    fontSize: 16,
+    color: 'rgba(255,255,255,0.7)',
   },
   macroDetailLabel: {
     fontSize: 12,
@@ -652,11 +698,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     color: 'white',
-  },
-  addButton: {
-    backgroundColor: '#FD6300',
-    borderRadius: 15,
-    padding: 5,
   },
   mealContainer: {
     backgroundColor: '#38393a',
