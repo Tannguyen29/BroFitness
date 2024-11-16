@@ -202,27 +202,52 @@ const FoodSelectionScreen = ({ route }) => {
   const handleSaveMeal = async () => {
     try {
       const token = await AsyncStorage.getItem('userToken');
+      const currentMealType = await AsyncStorage.getItem('currentMealType');
+      const currentMealDate = await AsyncStorage.getItem('currentMealDate');
+      
+      // Add detailed logging
+      console.log('Saving meal with date (raw):', currentMealDate);
+      console.log('Date object created:', new Date(currentMealDate));
+      console.log('ISO string:', new Date(currentMealDate).toISOString());
       
       // Kiểm tra điều kiện trước khi gọi API
       if (!currentMealType || selectedFoods.length === 0) {
         Alert.alert('Error', 'Please select meal type and add foods');
         return;
       }
+  
+      if (!currentMealDate) {
+        Alert.alert('Error', 'Meal date not found');
+        return;
+      }
 
+      // Ensure date is properly formatted as ISO string
+      const formattedDate = new Date(currentMealDate).toISOString();
+  
       const response = await axios.post(`${API_BASE_URL}/savemeals`, {
         mealType: currentMealType,
         foods: selectedFoods,
+        date: formattedDate // Send as ISO string
       }, {
         headers: {
           'x-auth-token': token,
+          'Content-Type': 'application/json'
         },
       });
-
-      console.log('Meal saved successfully:', response.data);
+      
+      console.log('Request payload:', {
+        mealType: currentMealType,
+        foods: selectedFoods.length,
+        date: formattedDate
+      });
+      console.log('Response:', response.data);
       
       // Clear selected foods và mealType sau khi save thành công
       setSelectedFoods([]);
-      await AsyncStorage.removeItem('currentMealType'); // Xóa mealType khỏi storage
+      await Promise.all([
+        AsyncStorage.removeItem('currentMealType'),
+        AsyncStorage.removeItem('currentMealDate')
+      ]); // Xóa cả mealType và date khỏi storage
       
       Alert.alert('Success', 'Meal saved successfully', [
         {
@@ -233,11 +258,11 @@ const FoodSelectionScreen = ({ route }) => {
       
     } catch (error) {
       console.error('Error saving meal:', error);
+      console.error('Error details:', error.response?.data);
       const errorMessage = error.response?.data?.message || 'Failed to save meal. Please try again later.';
       Alert.alert('Error', errorMessage);
     }
   };
-
   const renderFoodItem = ({ item, section }) => (
     <TouchableOpacity style={styles.foodItem} onPress={() => handleFoodSelection(item)}>
       <View style={styles.foodItemLeft}>

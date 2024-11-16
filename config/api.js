@@ -17,7 +17,7 @@ export const saveUserInfo = async (token, name, personalInfoCompleted) => {
     } else {
       await AsyncStorage.removeItem('userToken');
     }
-    
+
     if (name) {
       await AsyncStorage.setItem('userName', name);
     } else {
@@ -36,38 +36,40 @@ export const getUserInfo = async () => {
       const response = await apiClient.get(`${API_BASE_URL}/user-info`, {
         headers: { 'x-auth-token': token }
       });
-      
-      const { name, personalInfo, avatarUrl, role } = response.data;
+
+
+      const { _id, name, personalInfo, avatarUrl, role } = response.data;
       const { gender, age, weight, height } = personalInfo;
-      
-      return { 
-        token, 
-        name, 
+
+      return {
+        userId: _id,
+        token,
+        name,
         personalInfoCompleted: true,
         gender,
         age,
         weight,
         height,
         avatarUrl,
-
         role
-
       };
     }
-    
-    return { 
-      token: null, 
-      name: null, 
-      personalInfoCompleted: false, 
+
+    return {
+      userId: null,
+      token: null,
+      name: null,
+      personalInfoCompleted: false,
       avatarUrl: null,
-      role: 'free' 
+      role: 'free'
     };
   } catch (error) {
     console.error('Error getting user info:', error);
-    return { 
-      token: null, 
-      name: null, 
-      personalInfoCompleted: false, 
+    return {
+      userId: null,
+      token: null,
+      name: null,
+      personalInfoCompleted: false,
       avatarUrl: null,
       role: 'free'
     };
@@ -91,7 +93,7 @@ export const uploadAvatar = async (uri) => {
   try {
     const token = await AsyncStorage.getItem('userToken');
     const formData = new FormData();
-    
+
     const uriParts = uri.split('.');
     const fileType = uriParts[uriParts.length - 1];
 
