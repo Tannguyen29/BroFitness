@@ -87,7 +87,7 @@ const FoodSelectionScreen = ({ route }) => {
     }
 
     setFoodSuggestions(suggestions);
-    setIsLoading(false); // Stop loading
+    setIsLoading(false); 
   };
 
   const fetchFoodSuggestions = async (query) => {
@@ -212,7 +212,7 @@ const FoodSelectionScreen = ({ route }) => {
       
       // Kiểm tra điều kiện trước khi gọi API
       if (!currentMealType || selectedFoods.length === 0) {
-        Alert.alert('Error', 'Please select meal type and add foods');
+        navigation.navigate('Nutrition');
         return;
       }
   

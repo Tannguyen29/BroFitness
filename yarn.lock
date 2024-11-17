@@ -2594,6 +2594,11 @@
   dependencies:
     "@sinonjs/commons" "^3.0.0"
 
+"@stripe/stripe-react-native@^0.39.0":
+  version "0.39.0"
+  resolved "https://registry.npmjs.org/@stripe/stripe-react-native/-/stripe-react-native-0.39.0.tgz"
+  integrity sha512-KcsEQYsc3w2aGVVZ+jUKyuJiAkrWljEnomjcWaApVmthChXX46ComiSYM+n5uSPtkVnt7z2H4LfHVgdEzs627A==
+
 "@types/babel__core@^7.1.14":
   version "7.20.5"
   resolved "https://registry.npmjs.org/@types/babel__core/-/babel__core-7.20.5.tgz"
@@ -4179,7 +4184,7 @@ expo-status-bar@~2.0.0:
   resolved "https://registry.npmjs.org/expo-status-bar/-/expo-status-bar-2.0.0.tgz"
   integrity sha512-vxxdpvpNDMTEc5uTiIrbTvySKKUsOACmfl8OZuUdjNle05oGqwtq3v5YObwym/njSByjoyuZX8UpXBZnxvarwQ==
 
-expo@*, expo@>=50.0.0, expo@~52.0.7:
+expo@*, expo@>=46.0.9, expo@>=50.0.0, expo@~52.0.7:
   version "52.0.7"
   resolved "https://registry.npmjs.org/expo/-/expo-52.0.7.tgz"
   integrity sha512-AXN+FmYF8jR+IUJCuETO9iuMZ2DdGpL175kvHveBM/cS4MQsF7oe1MTnCRLyXQ92BDUZlqjWqWTX1sY3ysPoZw==

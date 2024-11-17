@@ -92,6 +92,7 @@ const MacroGoals = ({ carbs, protein, fat, calories, totalCarbs, totalProtein, t
 
   const calculateFillPercentage = (consumed, total) => {
     if (!total) return 0;
+    // Không giới hạn phần trăm ở 100% nữa
     return (consumed / total) * 100;
   };
 
@@ -355,8 +356,8 @@ const Nutrition = () => {
           age: info.age,
           weight: info.weight,
           height: info.height,
-          physicalActivityLevel: 'moderate', // You might want to store this in user profile
-          fitnessGoal: 'maintain' // You might want to store this in user profile
+          physicalActivityLevel: 'moderate', 
+          fitnessGoal: 'maintain' 
         });
       }
     };
@@ -413,10 +414,10 @@ const Nutrition = () => {
   const calculateRemaining = () => {
     const consumed = calculateConsumed();
     const remaining = {
-      calories: Math.max(0, dailyGoals.calories - consumed.calories),
-      protein: Math.max(0, dailyGoals.protein - consumed.protein),
-      carbs: Math.max(0, dailyGoals.carbs - consumed.carbs),
-      fat: Math.max(0, dailyGoals.fat - consumed.fat)
+      calories: dailyGoals.calories - consumed.calories,
+      protein: dailyGoals.protein - consumed.protein,
+      carbs: dailyGoals.carbs - consumed.carbs,
+      fat: dailyGoals.fat - consumed.fat
     };
 
     console.log('Calories Goal:', dailyGoals.calories);
@@ -440,8 +441,7 @@ const Nutrition = () => {
           headers: { 'x-auth-token': userInfo.token }
         }
       );
-      
-      // Return response data directly as it already has the foods array
+
       return response.data || { foods: [] };
     } catch (error) {
       console.log(`Error fetching ${mealType}:`, error);
@@ -476,7 +476,6 @@ const Nutrition = () => {
           });
         } catch (error) {
           console.error('Error updating meals:', error);
-          // Set default values on error
           setMeals({
             Breakfast: { foods: [], totals: { calories: 0, protein: 0, fat: 0, carbs: 0 } },
             Lunch: { foods: [], totals: { calories: 0, protein: 0, fat: 0, carbs: 0 } },
