@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-
+import { API_BASE_URL } from '@env';
 const PremiumPlans = ({ navigation }) => {
   const [selectedPlan, setSelectedPlan] = useState('12months');
 
@@ -41,6 +41,7 @@ const PremiumPlans = ({ navigation }) => {
     if (selectedPlan) {
       const selectedPlanData = plans.find(plan => plan.id === selectedPlan);
       navigation.navigate('PaymentMethod', { plan: selectedPlanData });
+      console.log('Selected Plan:', selectedPlanData);
     }
   };
 

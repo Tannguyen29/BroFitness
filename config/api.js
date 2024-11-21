@@ -37,8 +37,16 @@ export const getUserInfo = async () => {
         headers: { 'x-auth-token': token }
       });
 
-
-      const { _id, name, personalInfo, avatarUrl, role } = response.data;
+      const { 
+        _id, 
+        name, 
+        personalInfo, 
+        avatarUrl, 
+        role, 
+        premiumExpireDate,
+        daysRemaining 
+      } = response.data;
+      
       const { gender, age, weight, height } = personalInfo;
 
       return {
@@ -51,7 +59,9 @@ export const getUserInfo = async () => {
         weight,
         height,
         avatarUrl,
-        role
+        role,
+        premiumExpireDate,
+        daysRemaining
       };
     }
 
@@ -61,7 +71,9 @@ export const getUserInfo = async () => {
       name: null,
       personalInfoCompleted: false,
       avatarUrl: null,
-      role: 'free'
+      role: 'free',
+      premiumExpireDate: null,
+      daysRemaining: 0
     };
   } catch (error) {
     console.error('Error getting user info:', error);
@@ -71,7 +83,9 @@ export const getUserInfo = async () => {
       name: null,
       personalInfoCompleted: false,
       avatarUrl: null,
-      role: 'free'
+      role: 'free',
+      premiumExpireDate: null,
+      daysRemaining: 0
     };
   }
 };
