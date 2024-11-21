@@ -26,9 +26,10 @@ import SetupCompletionScreen from '../screen/SetupCompletionScreen'
 import MyMeal from '../screen/MyMeal'
 import PremiumPlans from '../../components/PremiumPlans'
 import PaymentMethodScreen from '../screen/PaymentMethodScreen';
-import PaymentScreen from '../screen/PaymentScreen';
 import CreatePlan from '../screen/CreatePlan'
 import ExerciseSelector from '../../components/ExerciseSelector'
+import WebViewScreen from '../screen/WebViewScreen'
+import PaymentResultScreen from '../screen/PaymentResultScreen'
 import { API_BASE_URL } from '@env';
 
 const Stack = createNativeStackNavigator();
@@ -68,32 +69,33 @@ const AppNavigation = ({ initialRoute }) => {
   return (
     <NavigationContainer>
       <Stack.Navigator initialRouteName={initialRoute}>
-        <Stack.Screen name="HomeScreen" component={HomeScreen} options={{ headerShown: false }}/>
-        <Stack.Screen name="SignIn" component={SignIn} options={{ headerShown: false }}/>
-        <Stack.Screen name="SignUp" component={SignUp} options={{ headerShown: false }}/>
-        <Stack.Screen name="BottomTabs" component={BottomNavigation} options={{ headerShown: false }}/>
-        <Stack.Screen name="OnboardScreen" component={OnboardScreen} options={{ headerShown: false }}/>
-        <Stack.Screen name="EmailInput" component={EmailInput} options={{ headerShown: false }}/>
-        <Stack.Screen name="OtpInput" component={OtpInput} options={{ headerShown: false }}/>
-        <Stack.Screen name="ResetPassword" component={ResetPassword} options={{ headerShown: false }}/>
-        <Stack.Screen name="OtpForgotPassword" component={OtpForgotPassword} options={{ headerShown: false }}/>
-        <Stack.Screen name="FinishResetPassword" component={FinishResetPassword} options={{ headerShown: false }}/>
-        <Stack.Screen name="PersonalInformationSetup" component={PersonalInformationSetup} options={{ headerShown: false }}/>
-        <Stack.Screen name="PlanOverview" component={PlanOverviewScreen} options={{ headerShown: false }}/>
-        <Stack.Screen name="PlanDetail" component={PlanDetail} options={{ headerShown: false }}/>
-        <Stack.Screen name="Workout" component={WorkoutScreen} options={{ headerShown: false }}/>
-        <Stack.Screen name="WorkoutCompleted" component={WorkoutCompletedScreen} options={{ headerShown: false }}/>
-        <Stack.Screen name="AllPlans" component={AllPlan} options={{ headerShown: false }}/>
-        <Stack.Screen name="ProfileEdit" component={ProfileEdit} options={{ headerShown: false }}/>
-        <Stack.Screen name="FoodSelectionScreen" component={FoodSelectionScreen} options={{ headerShown: false }}/>
-        <Stack.Screen name="FoodDetail" component={FoodDetail} options={{ headerShown: false }}/>
-        <Stack.Screen name="SetupCompletion" component={SetupCompletionScreen} options={{ headerShown: false }}/>
-        <Stack.Screen name="MyMeal" component={MyMeal} options={{ headerShown: false }}/>
-        <Stack.Screen name="PremiumPlans" component={PremiumPlans} options={{ headerShown: false }}/>
-        <Stack.Screen name="PaymentMethod" component={PaymentMethodScreen} options={{ headerShown: false }}/>
-        <Stack.Screen name="PaymentDetails" component={PaymentScreen} options={{ headerShown: false }}/>
-        <Stack.Screen name="CreatePlan" component={CreatePlan} options={{ headerShown: false }}/>
-        <Stack.Screen name="ExerciseSelector" component={ExerciseSelector} options={{ headerShown: false }}/>
+        <Stack.Screen name="HomeScreen" component={HomeScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="SignIn" component={SignIn} options={{ headerShown: false }} />
+        <Stack.Screen name="SignUp" component={SignUp} options={{ headerShown: false }} />
+        <Stack.Screen name="BottomTabs" component={BottomNavigation} options={{ headerShown: false }} />
+        <Stack.Screen name="OnboardScreen" component={OnboardScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="EmailInput" component={EmailInput} options={{ headerShown: false }} />
+        <Stack.Screen name="OtpInput" component={OtpInput} options={{ headerShown: false }} />
+        <Stack.Screen name="ResetPassword" component={ResetPassword} options={{ headerShown: false }} />
+        <Stack.Screen name="OtpForgotPassword" component={OtpForgotPassword} options={{ headerShown: false }} />
+        <Stack.Screen name="FinishResetPassword" component={FinishResetPassword} options={{ headerShown: false }} />
+        <Stack.Screen name="PersonalInformationSetup" component={PersonalInformationSetup} options={{ headerShown: false }} />
+        <Stack.Screen name="PlanOverview" component={PlanOverviewScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="PlanDetail" component={PlanDetail} options={{ headerShown: false }} />
+        <Stack.Screen name="Workout" component={WorkoutScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="WorkoutCompleted" component={WorkoutCompletedScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="AllPlans" component={AllPlan} options={{ headerShown: false }} />
+        <Stack.Screen name="ProfileEdit" component={ProfileEdit} options={{ headerShown: false }} />
+        <Stack.Screen name="FoodSelectionScreen" component={FoodSelectionScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="FoodDetail" component={FoodDetail} options={{ headerShown: false }} />
+        <Stack.Screen name="SetupCompletion" component={SetupCompletionScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="MyMeal" component={MyMeal} options={{ headerShown: false }} />
+        <Stack.Screen name="PremiumPlans" component={PremiumPlans} options={{ headerShown: false }} />
+        <Stack.Screen name="PaymentMethod" component={PaymentMethodScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="CreatePlan" component={CreatePlan} options={{ headerShown: false }} />
+        <Stack.Screen name="ExerciseSelector" component={ExerciseSelector} options={{ headerShown: false }} />
+        <Stack.Screen name="WebViewScreen" component={WebViewScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="PaymentResult" component={PaymentResultScreen} options={{ headerShown: false }} />
       </Stack.Navigator>
     </NavigationContainer>
   );

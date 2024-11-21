@@ -4,9 +4,43 @@ import logo from '../../assets/image/logo.png'
 import gym from '../../assets/image/gym.jpg'
 import CustomButton from '../../components/CustomButton';
 import { useNavigation } from '@react-navigation/native';
-
+import { useState, useEffect } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios from 'axios';
+import { API_BASE_URL } from '@env';
 const HomeScreen  = () => {
     const navigation = useNavigation();
+    const [premiumStatus, setPremiumStatus] = useState(null);
+
+    useEffect(() => {
+        const checkPremiumStatus = async () => {
+            try {
+                const token = await AsyncStorage.getItem('userToken');
+                if (token) {
+                    const response = await axios.get(`${API_BASE_URL}/premium-status`, {
+                        headers: { 'x-auth-token': token }
+                    });
+                    console.log('Home screen - Premium status:', response.data);
+                    setPremiumStatus(response.data);
+                    
+                    const userInfo = await AsyncStorage.getItem('userInfo');
+                    if (userInfo) {
+                        const parsedInfo = JSON.parse(userInfo);
+                        parsedInfo.role = response.data.role;
+                        console.log('Updating user info with role:', response.data.role);
+                        await AsyncStorage.setItem('userInfo', JSON.stringify(parsedInfo));
+                    }
+                }
+            } catch (error) {
+                console.error('Error checking premium status:', error);
+            }
+        };
+
+        checkPremiumStatus();
+        const interval = setInterval(checkPremiumStatus, 3600000);
+        return () => clearInterval(interval);
+    }, []);
+
   return (
     <View className="bg-black flex-1">
       <ImageBackground source={gym} resizeMode="cover" style={{ flex: 1 }}>
