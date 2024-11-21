@@ -1,36 +1,57 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { API_BASE_URL } from '@env';
 
 const PaymentMethodScreen = ({ route, navigation }) => {
   const { plan } = route.params;
-  const [selectedMethod, setSelectedMethod] = useState(null);
+  const [selectedMethod, setSelectedMethod] = useState('vnpay'); // Default to VNPay
 
   const paymentMethods = [
     {
-      id: 'visa',
-      name: 'Credit/Debit Card',
-      description: 'Pay with Visa, Mastercard',
-      icon: require('../../assets/visa-icon.png') // Make sure to add this image
-    },
-    {
-      id: 'test',
-      name: 'Test Payment',
-      description: 'For testing purposes only',
-      icon: require('../../assets/visa-icon.png') // Make sure to add this image
+      id: 'vnpay',
+      name: 'VNPay',
+      description: 'Pay with VNPay',
+      icon: require('../../assets/visa-icon.png') // Ensure this path is correct
     }
   ];
 
-  const handleContinue = () => {
-    if (!selectedMethod) {
-      Alert.alert('Error', 'Please select a payment method');
-      return;
-    }
+  const handleContinue = async () => {
+    try {
+      const token = await AsyncStorage.getItem('userToken');
+      if (!token) {
+        Alert.alert('Error', 'Authentication token not found');
+        return;
+      }
 
-    navigation.navigate('PaymentDetails', {
-      plan: plan,
-      paymentMethod: selectedMethod
-    });
+      const requestData = {
+        amount: plan.totalPrice,
+        duration: plan.duration,
+        orderInfo: `Premium Plan ${plan.duration} ${plan.label}`,
+        planId: plan.id
+      };
+
+      const response = await axios.post(`${API_BASE_URL}/create-payment`, requestData, {
+        headers: { 
+          'x-auth-token': token,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (response.data.paymentUrl) {
+        navigation.navigate('WebViewScreen', { 
+          url: response.data.paymentUrl
+        });
+      } else {
+        console.error('6. Error: No payment URL in response');
+        Alert.alert('Error', 'Failed to create payment URL');
+      }
+    } catch (error) {
+      console.error('Payment Error:', error);
+      Alert.alert('Error', 'Payment failed. Please try again.');
+    }
   };
 
   return (
@@ -88,12 +109,8 @@ const PaymentMethodScreen = ({ route, navigation }) => {
         </View>
 
         <TouchableOpacity
-          style={[
-            styles.continueButton,
-            !selectedMethod && styles.continueButtonDisabled
-          ]}
+          style={styles.continueButton}
           onPress={handleContinue}
-          disabled={!selectedMethod}
         >
           <Text style={styles.continueButtonText}>Continue</Text>
         </TouchableOpacity>
