@@ -11,7 +11,7 @@ import axios from 'axios';
 import { API_BASE_URL } from '@env';
 
 const ExerciseSelector = ({ route, navigation }) => {
-  const { onSelect } = route.params;
+  const { weekNumber, dayNumber, experienceLevels, equipmentNeeded } = route.params;
   const [focusAreas, setFocusAreas] = useState([]);
   const [selectedExercises, setSelectedExercises] = useState([]);
   const [availableExercises, setAvailableExercises] = useState([]);
@@ -48,13 +48,29 @@ const ExerciseSelector = ({ route, navigation }) => {
     }
   };
 
-  const handleDone = () => {
-    route.params.onSelect(selectedExercises);
-    navigation.goBack();
+  const handleDone = async () => {
+    try {
+      if (selectedExercises.length > 0) {
+        const data = {
+          exercises: selectedExercises,
+          weekNumber: weekNumber,
+          dayNumber: dayNumber
+        };
+        await AsyncStorage.setItem('selectedExercises', JSON.stringify(data));
+      }
+      navigation.goBack();
+    } catch (error) {
+      console.error('Error saving selected exercises:', error);
+    }
   };
 
   const filteredExercises = availableExercises.filter(exercise =>
-    focusAreas.every(area => exercise.targetMuscleGroups?.includes(area))
+    (experienceLevels.length === 0 || 
+     experienceLevels.includes(exercise.difficulty)) &&
+    (equipmentNeeded.length === 0 || 
+     equipmentNeeded.includes(exercise.equipment)) &&
+    (focusAreas.length === 0 || 
+     focusAreas.every(area => exercise.bodyPart?.includes(area)))
   );
 
   return (
@@ -69,6 +85,28 @@ const ExerciseSelector = ({ route, navigation }) => {
         <Text style={styles.headerText}>Select Exercises</Text>
       </View>
 
+      {(experienceLevels.length > 0 || equipmentNeeded.length > 0) && (
+        <View style={styles.section}>
+          <Text style={styles.label}>Active Filters:</Text>
+          {experienceLevels.length > 0 && (
+            <View style={styles.filterGroup}>
+              <Text style={styles.filterLabel}>Experience Levels:</Text>
+              <Text style={styles.filterValue}>
+                {experienceLevels.join(', ')}
+              </Text>
+            </View>
+          )}
+          {equipmentNeeded.length > 0 && (
+            <View style={styles.filterGroup}>
+              <Text style={styles.filterLabel}>Equipment:</Text>
+              <Text style={styles.filterValue}>
+                {equipmentNeeded.join(', ')}
+              </Text>
+            </View>
+          )}
+        </View>
+      )}
+
       <View style={styles.section}>
         <Text style={styles.label}>Select Focus Areas</Text>
         <View style={styles.checkboxGroup}>
@@ -81,30 +119,48 @@ const ExerciseSelector = ({ route, navigation }) => {
               ]}
               onPress={() => handleFocusAreaSelect(area)}
             >
-              <Text style={styles.checkboxText}>{area}</Text>
+              <Text style={[
+                styles.checkboxText,
+                focusAreas.includes(area) && styles.checkedText
+              ]}>
+                {area}
+              </Text>
             </TouchableOpacity>
           ))}
         </View>
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.label}>Available Exercises</Text>
+        <Text style={styles.label}>
+          Available Exercises {filteredExercises.length > 0 && `(${filteredExercises.length})`}
+        </Text>
         <ScrollView style={styles.exerciseList}>
-          {filteredExercises.map((exercise) => (
-            <TouchableOpacity
-              key={exercise._id}
-              style={[
-                styles.exerciseItem,
-                selectedExercises.includes(exercise) && styles.selectedExercise
-              ]}
-              onPress={() => handleExerciseSelect(exercise)}
-            >
-              <Text style={styles.exerciseName}>{exercise.name}</Text>
-              <Text style={styles.muscleGroups}>
-                {exercise.targetMuscleGroups?.join(', ') || 'N/A'}
-              </Text>
-            </TouchableOpacity>
-          ))}
+          {filteredExercises.length > 0 ? (
+            filteredExercises.map((exercise) => (
+              <TouchableOpacity
+                key={exercise._id}
+                style={[
+                  styles.exerciseItem,
+                  selectedExercises.includes(exercise) && styles.selectedExercise
+                ]}
+                onPress={() => handleExerciseSelect(exercise)}
+              >
+                <Text style={[
+                  styles.exerciseName,
+                  selectedExercises.includes(exercise) && styles.selectedText
+                ]}>
+                  {exercise.name}
+                </Text>
+                <Text style={styles.muscleGroups}>
+                  {exercise.targetMuscleGroups?.join(', ') || 'N/A'}
+                </Text>
+              </TouchableOpacity>
+            ))
+          ) : (
+            <Text style={styles.noExercisesText}>
+              No exercises found for selected focus areas
+            </Text>
+          )}
         </ScrollView>
       </View>
 
@@ -199,6 +255,31 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  checkedText: {
+    color: '#000000',
+  },
+  selectedText: {
+    color: '#000000',
+  },
+  noExercisesText: {
+    color: '#999999',
+    textAlign: 'center',
+    marginTop: 20,
+    fontStyle: 'italic',
+  },
+  filterGroup: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  filterLabel: {
+    color: '#999999',
+    marginRight: 8,
+  },
+  filterValue: {
+    color: 'coral',
+    flex: 1,
   },
 });
 

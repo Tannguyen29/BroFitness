@@ -15,15 +15,26 @@ import { API_BASE_URL } from '@env';
 
 const PTPlans = ({ navigation }) => {
   const [plans, setPlans] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [selectedPlan, setSelectedPlan] = useState(null);
   const [showProgress, setShowProgress] = useState(false);
 
   useEffect(() => {
     fetchPlans();
-  }, []);
+    
+    // Refresh plans khi quay lại từ CreatePlan
+    const unsubscribe = navigation.addListener('focus', () => {
+      fetchPlans();
+    });
+
+    return unsubscribe;
+  }, [navigation]);
 
   const fetchPlans = async () => {
     try {
+      setLoading(true);
+      setError(null);
       const token = await AsyncStorage.getItem('userToken');
       const response = await axios.get(`${API_BASE_URL}/pt-plans`, {
         headers: { 'x-auth-token': token }
@@ -31,6 +42,9 @@ const PTPlans = ({ navigation }) => {
       setPlans(response.data);
     } catch (error) {
       console.error('Error fetching plans:', error);
+      setError('Failed to load plans');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -94,10 +108,16 @@ const PTPlans = ({ navigation }) => {
     <View style={styles.planItem}>
       <Text style={styles.planTitle}>{item.title}</Text>
       <Text style={styles.planInfo}>
-        {item.duration.weeks} weeks, {item.duration.daysPerWeek} days/week
+        Duration: {item.duration.weeks} weeks, {item.duration.daysPerWeek} days/week
       </Text>
       <Text style={styles.planInfo}>
-        {item.students.length} student(s) enrolled
+        Experience Levels: {item.targetAudience.experienceLevels.join(', ')}
+      </Text>
+      <Text style={styles.planInfo}>
+        Equipment: {item.targetAudience.equipmentNeeded.join(', ')}
+      </Text>
+      <Text style={styles.planInfo}>
+        Students: {item.students.length}
       </Text>
       <View style={styles.buttonContainer}>
         <TouchableOpacity 
@@ -119,12 +139,31 @@ const PTPlans = ({ navigation }) => {
   return (
     <View style={styles.container}>
       <Text style={styles.headerText}>My Training Plans</Text>
-      <FlatList
-        data={plans}
-        renderItem={renderPlanItem}
-        keyExtractor={(item) => item._id}
-        contentContainerStyle={styles.listContainer}
-      />
+      {loading ? (
+        <View style={styles.centerContainer}>
+          <Text style={styles.loadingText}>Loading plans...</Text>
+        </View>
+      ) : error ? (
+        <View style={styles.centerContainer}>
+          <Text style={styles.errorText}>{error}</Text>
+          <TouchableOpacity style={styles.retryButton} onPress={fetchPlans}>
+            <Text style={styles.retryButtonText}>Retry</Text>
+          </TouchableOpacity>
+        </View>
+      ) : plans.length === 0 ? (
+        <View style={styles.centerContainer}>
+          <Text style={styles.noPlansText}>No plans created yet</Text>
+        </View>
+      ) : (
+        <FlatList
+          data={plans}
+          renderItem={renderPlanItem}
+          keyExtractor={(item) => item._id}
+          contentContainerStyle={styles.listContainer}
+          refreshing={loading}
+          onRefresh={fetchPlans}
+        />
+      )}
       <TouchableOpacity 
         style={styles.addButton}
         onPress={navigateToCreatePlan}
@@ -251,6 +290,35 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  centerContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    color: '#888',
+    fontSize: 16,
+  },
+  errorText: {
+    color: '#FF4444',
+    fontSize: 16,
+    marginBottom: 16,
+  },
+  retryButton: {
+    backgroundColor: 'coral',
+    padding: 12,
+    borderRadius: 8,
+  },
+  retryButtonText: {
+    color: 'white',
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
+  noPlansText: {
+    color: '#888',
+    fontSize: 16,
+    fontStyle: 'italic',
   },
 });
 

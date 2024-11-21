@@ -61,7 +61,23 @@ const BottomNavigation = () => {
         <Tab.Screen key="Calendar" name="Calendar" component={Calendars} />
       );
     } else {
-      screens.push(<Tab.Screen key="Personal" name="Personal" component={Personal} />);
+      screens.push(
+        <Tab.Screen 
+          key="Personal" 
+          name="Personal" 
+          component={Personal}
+          listeners={{
+            tabPress: (e) => {
+              if (userRole === 'free') {
+                // Prevent navigation to Personal tab
+                e.preventDefault();
+                // You can add alert or navigation to premium subscription page here
+                alert('Please upgrade to Premium to access Personal features');
+              }
+            },
+          }}
+        />
+      );
     }
 
     screens.push(<Tab.Screen key="Profile" name="Profile" component={Profiles} />);
@@ -82,7 +98,7 @@ const BottomNavigation = () => {
           } else if (route.name === 'Profile') {
             return <Profile size={size} color={focused ? 'coral' : "#676767"} />;
           } else if (route.name === 'Personal') {
-            return <TaskSquare size={size} color={focused ? 'coral' : "#676767"} />;
+            return <TaskSquare size={size} color={userRole === 'free' ? '#999999' : (focused ? 'coral' : "#676767")} />;
           } else if (route.name === 'Plans') {
             return <Edit size={size} color={focused ? 'coral' : "#676767"} />;
           } else {
@@ -97,7 +113,9 @@ const BottomNavigation = () => {
             <Text style={{ 
               fontSize: 12, 
               fontWeight: 'bold', 
-              color: focused ? 'coral' : "#676767" 
+              color: route.name === 'Personal' && userRole === 'free' 
+                ? '#999999' 
+                : (focused ? 'coral' : "#676767")
             }}>
               {labelText}
             </Text>
