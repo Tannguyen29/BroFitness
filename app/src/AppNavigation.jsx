@@ -31,6 +31,8 @@ import ExerciseSelector from '../../components/ExerciseSelector'
 import WebViewScreen from '../screen/WebViewScreen'
 import PaymentResultScreen from '../screen/PaymentResultScreen'
 import EditPlan from '../screen/EditPlan';
+import PTPlansOverview from '../../components/PTPlansOverview';
+import PTPlansDetail from '../(tabs)/PTPlansDetail';
 import { API_BASE_URL } from '@env';
 
 const Stack = createNativeStackNavigator();
@@ -98,6 +100,8 @@ const AppNavigation = ({ initialRoute }) => {
         <Stack.Screen name="WebViewScreen" component={WebViewScreen} options={{ headerShown: false }} />
         <Stack.Screen name="PaymentResult" component={PaymentResultScreen} options={{ headerShown: false }} />
         <Stack.Screen name="EditPlan" component={EditPlan} options={{ headerShown: false }} />
+        <Stack.Screen name="PTPlansOverview" component={PTPlansOverview} options={{ headerShown: false }} />
+        <Stack.Screen name="PTPlansDetail" component={PTPlansDetail} options={{ headerShown: false }} />
       </Stack.Navigator>
     </NavigationContainer>
   );
