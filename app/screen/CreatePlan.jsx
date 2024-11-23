@@ -73,258 +73,283 @@ const CreatePlan = ({ navigation }) => {
           daysPerWeek: parseInt(daysPerWeek),
         },
         students: selectedStudents,
-        exercises: exercises,
-    };
+        exercises: exercises.map(ex => ({
+          weekNumber: ex.weekNumber,
+          dayNumber: ex.dayNumber,
+          exercise: ex.exercise
+        }))
+      };
 
-    await axios.post(`${API_BASE_URL}/pt-plans`, planData, {
-      headers: { 'x-auth-token': token }
-    });
+      await axios.post(`${API_BASE_URL}/pt-plans`, planData, {
+        headers: { 'x-auth-token': token }
+      });
 
-    Alert.alert('Success', 'Plan created successfully');
-    navigation.goBack();
-  } catch (error) {
-    console.error('Error creating plan:', error);
-    Alert.alert('Error', 'Failed to create plan');
-  }
-};
-
-const renderStudentSelection = () => (
-  <View style={styles.section}>
-    <Text style={styles.sectionTitle}>Select Students</Text>
-    <ScrollView style={styles.selectionContainer}>
-      {availableStudents.map((student) => (
-        <TouchableOpacity
-          key={student._id}
-          style={[
-            styles.selectionItem,
-            selectedStudents.includes(student._id) && styles.selectedItem
-          ]}
-          onPress={() => {
-            if (selectedStudents.includes(student._id)) {
-              setSelectedStudents(selectedStudents.filter(id => id !== student._id));
-            } else {
-              setSelectedStudents([...selectedStudents, student._id]);
-            }
-          }}
-        >
-          <Text style={styles.selectionText}>{student.name}</Text>
-        </TouchableOpacity>
-      ))}
-    </ScrollView>
-  </View>
-);
-
-const renderTargetAudienceSection = () => (
-  <View style={styles.section}>
-    <Text style={styles.sectionTitle}>Target Audience</Text>
-    
-    <Text style={styles.label}>Experience Levels</Text>
-    <View style={styles.checkboxGroup}>
-      {['beginner', 'intermediate', 'advanced'].map((level) => (
-        <TouchableOpacity
-          key={level}
-          style={[
-            styles.checkbox,
-            experienceLevels.includes(level) && styles.checkedBox
-          ]}
-          onPress={() => {
-            if (experienceLevels.includes(level)) {
-              setExperienceLevels(experienceLevels.filter(l => l !== level));
-            } else {
-              setExperienceLevels([...experienceLevels, level]);
-            }
-          }}
-        >
-          <Text style={styles.checkboxText}>{level}</Text>
-        </TouchableOpacity>
-      ))}
-    </View>
-
-    <Text style={styles.label}>Fitness Goals</Text>
-    <View style={styles.checkboxGroup}>
-      {['loseWeight', 'buildMuscle', 'keepFit'].map((goal) => (
-        <TouchableOpacity
-          key={goal}
-          style={[
-            styles.checkbox,
-            fitnessGoals.includes(goal) && styles.checkedBox
-          ]}
-          onPress={() => {
-            if (fitnessGoals.includes(goal)) {
-              setFitnessGoals(fitnessGoals.filter(g => g !== goal));
-            } else {
-              setFitnessGoals([...fitnessGoals, goal]);
-            }
-          }}
-        >
-          <Text style={styles.checkboxText}>{goal}</Text>
-        </TouchableOpacity>
-      ))}
-    </View>
-
-    <Text style={styles.label}>Equipment Needed</Text>
-    <View style={styles.checkboxGroup}>
-      {['body weight', 'dumbbell', 'barbell'].map((equipment) => (
-        <TouchableOpacity
-          key={equipment}
-          style={[
-            styles.checkbox,
-            equipmentNeeded.includes(equipment) && styles.checkedBox
-          ]}
-          onPress={() => {
-            if (equipmentNeeded.includes(equipment)) {
-              setEquipmentNeeded(equipmentNeeded.filter(e => e !== equipment));
-            } else {
-              setEquipmentNeeded([...equipmentNeeded, equipment]);
-            }
-          }}
-        >
-          <Text style={styles.checkboxText}>{equipment}</Text>
-        </TouchableOpacity>
-      ))}
-    </View>
-  </View>
-);
-
-const handleAddExercise = () => {
-  navigation.navigate('ExerciseSelector', {
-    onSelect: (exercises) => {
-      setExercises([...exercises, ...exercises.map(e => ({
-        weekNumber: currentWeek,
-        dayNumber: currentDay,
-        exercise: e
-      }))]);
+      Alert.alert('Success', 'Plan created successfully');
+      navigation.goBack();
+    } catch (error) {
+      console.error('Error creating plan:', error);
+      Alert.alert('Error', 'Failed to create plan');
     }
-  });
-};
+  };
 
-const renderWorkoutPlanner = () => (
-  <View style={styles.section}>
-    <Text style={styles.sectionTitle}>Workout Schedule</Text>
-    
-    <View style={styles.navigationButtons}>
-      <TouchableOpacity
-        style={[styles.navButton, currentWeek === 1 && styles.disabledButton]}
-        onPress={() => setCurrentWeek(currentWeek - 1)}
-        disabled={currentWeek === 1}
-      >
-        <Text style={styles.navButtonText}>Previous Week</Text>
-      </TouchableOpacity>
-      
-      <Text style={styles.weekText}>Week {currentWeek}</Text>
-      
-      <TouchableOpacity
-        style={[styles.navButton, currentWeek === parseInt(weeks) && styles.disabledButton]}
-        onPress={() => setCurrentWeek(currentWeek + 1)}
-        disabled={currentWeek === parseInt(weeks)}
-      >
-        <Text style={styles.navButtonText}>Next Week</Text>
-      </TouchableOpacity>
-    </View>
-
-    <View style={styles.dayButtons}>
-      {[...Array(parseInt(daysPerWeek))].map((_, index) => (
-        <TouchableOpacity
-          key={index}
-          style={[
-            styles.dayButton,
-            currentDay === index + 1 && styles.selectedDayButton
-          ]}
-          onPress={() => setCurrentDay(index + 1)}
-        >
-          <Text style={styles.dayButtonText}>Day {index + 1}</Text>
-        </TouchableOpacity>
-      ))}
-    </View>
-
-    <View style={styles.exerciseSection}>
-      <Text style={styles.label}>Add Exercises for Day {currentDay}</Text>
-      <TouchableOpacity
-          style={styles.addExerciseButton}
-          onPress={handleAddExercise}
-        >
-        <Text style={styles.addExerciseButtonText}>Add Exercise</Text>
-      </TouchableOpacity>
-
-      <ScrollView style={styles.exerciseList}>
-        {exercises
-          .filter(e => e.weekNumber === currentWeek && e.dayNumber === currentDay)
-          .map((exerciseItem, index) => (
-            <View key={index} style={styles.exerciseItem}>
-              <Text style={styles.exerciseName}>{exerciseItem.exercise.name}</Text>
-              <TouchableOpacity
-                style={styles.removeButton}
-                onPress={() => {
-                  setExercises(exercises.filter((_, i) => i !== index));
-                }}
-              >
-                <Text style={styles.removeButtonText}>Remove</Text>
-              </TouchableOpacity>
-            </View>
-          ))}
+  const renderStudentSelection = () => (
+    <View style={styles.section}>
+      <Text style={styles.sectionTitle}>Select Students</Text>
+      <ScrollView style={styles.selectionContainer}>
+        {availableStudents.map((student) => (
+          <TouchableOpacity
+            key={student._id}
+            style={[
+              styles.selectionItem,
+              selectedStudents.includes(student._id) && styles.selectedItem
+            ]}
+            onPress={() => {
+              if (selectedStudents.includes(student._id)) {
+                setSelectedStudents(selectedStudents.filter(id => id !== student._id));
+              } else {
+                setSelectedStudents([...selectedStudents, student._id]);
+              }
+            }}
+          >
+            <Text style={styles.selectionText}>{student.name}</Text>
+          </TouchableOpacity>
+        ))}
       </ScrollView>
     </View>
-  </View>
-);
+  );
 
-return (
-  <ScrollView style={styles.container}>
-    <View style={styles.header}>
-      <TouchableOpacity
-        style={styles.backButton}
-        onPress={() => navigation.goBack()}
-      >
-        <Text style={styles.backButtonText}>Back</Text>
-      </TouchableOpacity>
-      <Text style={styles.headerText}>Create New Plan</Text>
-    </View>
-
+  const renderTargetAudienceSection = () => (
     <View style={styles.section}>
-      <Text style={styles.label}>Plan Title</Text>
-      <TextInput
-        style={styles.input}
-        value={title}
-        onChangeText={setTitle}
-        placeholder="Enter plan title"
-        placeholderTextColor="#666"
-      />
-    </View>
+      <Text style={styles.sectionTitle}>Target Audience</Text>
+      
+      <Text style={styles.label}>Experience Levels</Text>
+      <View style={styles.checkboxGroup}>
+        {['beginner', 'intermediate', 'advanced'].map((level) => (
+          <TouchableOpacity
+            key={level}
+            style={[
+              styles.checkbox,
+              experienceLevels.includes(level) && styles.checkedBox
+            ]}
+            onPress={() => {
+              if (experienceLevels.includes(level)) {
+                setExperienceLevels(experienceLevels.filter(l => l !== level));
+              } else {
+                setExperienceLevels([...experienceLevels, level]);
+              }
+            }}
+          >
+            <Text style={styles.checkboxText}>{level}</Text>
+          </TouchableOpacity>
+        ))}
+      </View>
 
-    {renderStudentSelection()}
-    {renderTargetAudienceSection()}
+      <Text style={styles.label}>Fitness Goals</Text>
+      <View style={styles.checkboxGroup}>
+        {['loseWeight', 'buildMuscle', 'keepFit'].map((goal) => (
+          <TouchableOpacity
+            key={goal}
+            style={[
+              styles.checkbox,
+              fitnessGoals.includes(goal) && styles.checkedBox
+            ]}
+            onPress={() => {
+              if (fitnessGoals.includes(goal)) {
+                setFitnessGoals(fitnessGoals.filter(g => g !== goal));
+              } else {
+                setFitnessGoals([...fitnessGoals, goal]);
+              }
+            }}
+          >
+            <Text style={styles.checkboxText}>{goal}</Text>
+          </TouchableOpacity>
+        ))}
+      </View>
 
-    <View style={styles.section}>
-      <Text style={styles.label}>Duration</Text>
-      <View style={styles.durationContainer}>
-        <TextInput
-          style={[styles.input, styles.durationInput]}
-          value={weeks}
-          onChangeText={setWeeks}
-          placeholder="Weeks"
-          placeholderTextColor="#666"
-          keyboardType="numeric"
-        />
-        <TextInput
-          style={[styles.input, styles.durationInput]}
-          value={daysPerWeek}
-          onChangeText={setDaysPerWeek}
-          placeholder="Days/Week"
-          placeholderTextColor="#666"
-          keyboardType="numeric"
-        />
+      <Text style={styles.label}>Equipment Needed</Text>
+      <View style={styles.checkboxGroup}>
+        {['body weight', 'dumbbell', 'barbell'].map((equipment) => (
+          <TouchableOpacity
+            key={equipment}
+            style={[
+              styles.checkbox,
+              equipmentNeeded.includes(equipment) && styles.checkedBox
+            ]}
+            onPress={() => {
+              if (equipmentNeeded.includes(equipment)) {
+                setEquipmentNeeded(equipmentNeeded.filter(e => e !== equipment));
+              } else {
+                setEquipmentNeeded([...equipmentNeeded, equipment]);
+              }
+            }}
+          >
+            <Text style={styles.checkboxText}>{equipment}</Text>
+          </TouchableOpacity>
+        ))}
       </View>
     </View>
+  );
 
-    {weeks && daysPerWeek && renderWorkoutPlanner()}
+  const handleAddExercise = () => {
+    navigation.navigate('ExerciseSelector', {
+      weekNumber: currentWeek,
+      dayNumber: currentDay,
+      experienceLevels,
+      equipmentNeeded,
+    });
+  };
 
-    <TouchableOpacity
-      style={styles.createButton}
-      onPress={handleCreatePlan}
-    >
-      <Text style={styles.createButtonText}>Create Plan</Text>
-    </TouchableOpacity>
-  </ScrollView>
-);
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', async () => {
+      try {
+        const exercisesString = await AsyncStorage.getItem('selectedExercises');
+        if (exercisesString) {
+          const data = JSON.parse(exercisesString);
+          setExercises(prevExercises => [
+            ...prevExercises,
+            ...data.exercises.map(exercise => ({
+              weekNumber: data.weekNumber,
+              dayNumber: data.dayNumber,
+              exercise: exercise
+            }))
+          ]);
+          await AsyncStorage.removeItem('selectedExercises');
+        }
+      } catch (error) {
+        console.error('Error getting selected exercises:', error);
+      }
+    });
+
+    return unsubscribe;
+  }, [navigation]);
+
+  const renderWorkoutPlanner = () => (
+    <View style={styles.section}>
+      <Text style={styles.sectionTitle}>Workout Schedule</Text>
+      
+      <View style={styles.navigationButtons}>
+        <TouchableOpacity
+          style={[styles.navButton, currentWeek === 1 && styles.disabledButton]}
+          onPress={() => setCurrentWeek(currentWeek - 1)}
+          disabled={currentWeek === 1}
+        >
+          <Text style={styles.navButtonText}>Previous Week</Text>
+        </TouchableOpacity>
+        
+        <Text style={styles.weekText}>Week {currentWeek}</Text>
+        
+        <TouchableOpacity
+          style={[styles.navButton, currentWeek === parseInt(weeks) && styles.disabledButton]}
+          onPress={() => setCurrentWeek(currentWeek + 1)}
+          disabled={currentWeek === parseInt(weeks)}
+        >
+          <Text style={styles.navButtonText}>Next Week</Text>
+        </TouchableOpacity>
+      </View>
+
+      <View style={styles.dayButtons}>
+        {[...Array(parseInt(daysPerWeek))].map((_, index) => (
+          <TouchableOpacity
+            key={index}
+            style={[
+              styles.dayButton,
+              currentDay === index + 1 && styles.selectedDayButton
+            ]}
+            onPress={() => setCurrentDay(index + 1)}
+          >
+            <Text style={styles.dayButtonText}>Day {index + 1}</Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+
+      <View style={styles.exerciseSection}>
+        <Text style={styles.label}>Add Exercises for Day {currentDay}</Text>
+        <TouchableOpacity
+            style={styles.addExerciseButton}
+            onPress={handleAddExercise}
+          >
+          <Text style={styles.addExerciseButtonText}>Add Exercise</Text>
+        </TouchableOpacity>
+
+        <ScrollView style={styles.exerciseList}>
+          {exercises
+            .filter(e => e.weekNumber === currentWeek && e.dayNumber === currentDay)
+            .map((exerciseItem, index) => (
+              <View key={index} style={styles.exerciseItem}>
+                <Text style={styles.exerciseName}>{exerciseItem.exercise.name}</Text>
+                <TouchableOpacity
+                  style={styles.removeButton}
+                  onPress={() => {
+                    setExercises(exercises.filter((_, i) => i !== index));
+                  }}
+                >
+                  <Text style={styles.removeButtonText}>Remove</Text>
+                </TouchableOpacity>
+              </View>
+            ))}
+        </ScrollView>
+      </View>
+    </View>
+  );
+
+  return (
+    <ScrollView style={styles.container}>
+      <View style={styles.header}>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => navigation.goBack()}
+        >
+          <Text style={styles.backButtonText}>Back</Text>
+        </TouchableOpacity>
+        <Text style={styles.headerText}>Create New Plan</Text>
+      </View>
+
+      <View style={styles.section}>
+        <Text style={styles.label}>Plan Title</Text>
+        <TextInput
+          style={styles.input}
+          value={title}
+          onChangeText={setTitle}
+          placeholder="Enter plan title"
+          placeholderTextColor="#666"
+        />
+      </View>
+
+      {renderStudentSelection()}
+      {renderTargetAudienceSection()}
+
+      <View style={styles.section}>
+        <Text style={styles.label}>Duration</Text>
+        <View style={styles.durationContainer}>
+          <TextInput
+            style={[styles.input, styles.durationInput]}
+            value={weeks}
+            onChangeText={setWeeks}
+            placeholder="Weeks"
+            placeholderTextColor="#666"
+            keyboardType="numeric"
+          />
+          <TextInput
+            style={[styles.input, styles.durationInput]}
+            value={daysPerWeek}
+            onChangeText={setDaysPerWeek}
+            placeholder="Days/Week"
+            placeholderTextColor="#666"
+            keyboardType="numeric"
+          />
+        </View>
+      </View>
+
+      {weeks && daysPerWeek && renderWorkoutPlanner()}
+
+      <TouchableOpacity
+        style={styles.createButton}
+        onPress={handleCreatePlan}
+      >
+        <Text style={styles.createButtonText}>Create Plan</Text>
+      </TouchableOpacity>
+    </ScrollView>
+  );
 };
 
 const styles = StyleSheet.create({
