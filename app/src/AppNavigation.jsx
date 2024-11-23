@@ -30,6 +30,7 @@ import CreatePlan from '../screen/CreatePlan'
 import ExerciseSelector from '../../components/ExerciseSelector'
 import WebViewScreen from '../screen/WebViewScreen'
 import PaymentResultScreen from '../screen/PaymentResultScreen'
+import EditPlan from '../screen/EditPlan';
 import { API_BASE_URL } from '@env';
 
 const Stack = createNativeStackNavigator();
@@ -96,6 +97,7 @@ const AppNavigation = ({ initialRoute }) => {
         <Stack.Screen name="ExerciseSelector" component={ExerciseSelector} options={{ headerShown: false }} />
         <Stack.Screen name="WebViewScreen" component={WebViewScreen} options={{ headerShown: false }} />
         <Stack.Screen name="PaymentResult" component={PaymentResultScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="EditPlan" component={EditPlan} options={{ headerShown: false }} />
       </Stack.Navigator>
     </NavigationContainer>
   );
