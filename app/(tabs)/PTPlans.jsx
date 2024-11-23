@@ -21,9 +21,7 @@ const PTPlans = ({ navigation }) => {
   const [showProgress, setShowProgress] = useState(false);
 
   useEffect(() => {
-    fetchPlans();
-    
-    // Refresh plans khi quay lại từ CreatePlan
+    fetchPlans();   
     const unsubscribe = navigation.addListener('focus', () => {
       fetchPlans();
     });
