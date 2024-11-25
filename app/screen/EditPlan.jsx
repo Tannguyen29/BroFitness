@@ -360,7 +360,22 @@ const EditPlan = ({ route, navigation }) => {
             .filter(e => e.weekNumber === currentWeek && e.dayNumber === currentDay)
             .map((exerciseItem, index) => (
               <View key={index} style={styles.exerciseItem}>
-                <Text style={styles.exerciseName}>{exerciseItem.exercise.name}</Text>
+                <View style={styles.exerciseDetails}>
+                  <Text style={styles.exerciseName}>
+                    {exerciseItem.exercise.name}
+                  </Text>
+                  <View style={styles.exerciseParams}>
+                    <Text style={styles.paramText}>
+                      Sets: {exerciseItem.exercise.sets || 0}
+                    </Text>
+                    <Text style={styles.paramText}>
+                      Reps: {exerciseItem.exercise.reps || 0}
+                    </Text>
+                    <Text style={styles.paramText}>
+                      Duration: {exerciseItem.exercise.duration || 0} min
+                    </Text>
+                  </View>
+                </View>
                 <TouchableOpacity
                   style={styles.removeButton}
                   onPress={() => {
@@ -611,10 +626,24 @@ header: {
     justifyContent: 'space-between',
     alignItems: 'center',
   },
+  exerciseDetails: {
+    flex: 1,
+    marginRight: 10,
+  },
   exerciseName: {
     color: 'white',
     fontSize: 16,
-    flex: 1,
+    marginBottom: 4,
+    fontWeight: 'bold',
+  },
+  exerciseParams: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  paramText: {
+    color: '#888',
+    fontSize: 12,
   },
   addExerciseButton: {
     backgroundColor: 'coral',
@@ -632,7 +661,6 @@ header: {
     backgroundColor: '#FF4444',
     padding: 8,
     borderRadius: 8,
-    marginLeft: 8,
   },
   removeButtonText: {
     color: 'white',

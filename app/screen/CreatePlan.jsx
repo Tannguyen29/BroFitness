@@ -210,7 +210,12 @@ const CreatePlan = ({ navigation }) => {
             ...data.exercises.map(exercise => ({
               weekNumber: data.weekNumber,
               dayNumber: data.dayNumber,
-              exercise: exercise
+              exercise: {
+                ...exercise,
+                sets: exercise.sets,
+                reps: exercise.reps,
+                duration: exercise.duration
+              }
             }))
           ]);
           await AsyncStorage.removeItem('selectedExercises');
@@ -265,9 +270,9 @@ const CreatePlan = ({ navigation }) => {
       <View style={styles.exerciseSection}>
         <Text style={styles.label}>Add Exercises for Day {currentDay}</Text>
         <TouchableOpacity
-            style={styles.addExerciseButton}
-            onPress={handleAddExercise}
-          >
+          style={styles.addExerciseButton}
+          onPress={handleAddExercise}
+        >
           <Text style={styles.addExerciseButtonText}>Add Exercise</Text>
         </TouchableOpacity>
 
@@ -276,7 +281,20 @@ const CreatePlan = ({ navigation }) => {
             .filter(e => e.weekNumber === currentWeek && e.dayNumber === currentDay)
             .map((exerciseItem, index) => (
               <View key={index} style={styles.exerciseItem}>
-                <Text style={styles.exerciseName}>{exerciseItem.exercise.name}</Text>
+                <View style={styles.exerciseDetails}>
+                  <Text style={styles.exerciseName}>{exerciseItem.exercise.name}</Text>
+                  <View style={styles.exerciseParams}>
+                    <Text style={styles.paramText}>
+                      Sets: {exerciseItem.exercise.sets || 0}
+                    </Text>
+                    <Text style={styles.paramText}>
+                      Reps: {exerciseItem.exercise.reps || 0}
+                    </Text>
+                    <Text style={styles.paramText}>
+                      Duration: {exerciseItem.exercise.duration || 0}m
+                    </Text>
+                  </View>
+                </View>
                 <TouchableOpacity
                   style={styles.removeButton}
                   onPress={() => {
@@ -497,17 +515,31 @@ exerciseList: {
   maxHeight: 200,
 },
 exerciseItem: {
+  backgroundColor: '#1A1A1A',
+  padding: 12,
+  borderRadius: 8,
+  marginBottom: 8,
   flexDirection: 'row',
   justifyContent: 'space-between',
   alignItems: 'center',
-  padding: 12,
-  backgroundColor: '#1A1A1A',
-  borderRadius: 8,
-  marginBottom: 8,
+},
+exerciseDetails: {
+  flex: 1,
+  marginRight: 10,
 },
 exerciseName: {
   color: 'white',
-  flex: 1,
+  fontSize: 16,
+  marginBottom: 4,
+},
+exerciseParams: {
+  flexDirection: 'row',
+  flexWrap: 'wrap',
+  gap: 8,
+},
+paramText: {
+  color: '#888',
+  fontSize: 12,
 },
 removeButton: {
   backgroundColor: '#FF4444',
@@ -516,6 +548,7 @@ removeButton: {
 },
 removeButtonText: {
   color: 'white',
+  fontSize: 14,
 },
 createButton: {
   backgroundColor: 'coral',

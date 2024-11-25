@@ -4,13 +4,15 @@ import { Icon } from "@rneui/themed";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getUserInfo } from '../config/api';
 import { EventRegister } from 'react-native-event-listeners';
-
-const PlanOverview = ({ plan, navigation }) => {
+import axios from 'axios';
+import { API_BASE_URL } from '@env';
+const PlanOverview = ({ plan, navigation, route }) => {
   const [currentDay, setCurrentDay] = useState(1);
   const [completedDays, setCompletedDays] = useState(0);
   const [lastUnlockTime, setLastUnlockTime] = useState(null);
   const [isCompleted, setIsCompleted] = useState(false);
   const [showCompletionModal, setShowCompletionModal] = useState(false);
+  const [isWorkoutLocked, setIsWorkoutLocked] = useState(false);
   const [userId, setUserId] = useState(null);
 
   useEffect(() => {
@@ -45,50 +47,82 @@ const PlanOverview = ({ plan, navigation }) => {
     };
   }, []);
 
-  const loadProgress = async (currentUserId) => {
+  const loadProgress = async () => {
     try {
-      if (!currentUserId) return;
-      
-      const key = `plan_progress_${currentUserId}_${plan._id}`;
-      const savedProgress = await AsyncStorage.getItem(key);
-      
-      if (savedProgress) {
-        const { completedDays, lastUnlockTime } = JSON.parse(savedProgress);
-        setCompletedDays(completedDays);
-        setLastUnlockTime(new Date(lastUnlockTime));
-        setCurrentDay(completedDays + 1);
-        
-        if (completedDays >= plan.duration.weeks * plan.duration.daysPerWeek) {
-          setIsCompleted(true);
-        }
-      }
-    } catch (error) {
-      console.error("Error loading progress:", error);
-    }
-  };
+      const token = await AsyncStorage.getItem('userToken');
+      const response = await axios.get(
+        `${API_BASE_URL}/plans/${plan._id}/progress`,
+        { headers: { 'x-auth-token': token } }
+      );
 
-  const saveProgress = async (newCompletedDays) => {
-    try {
-      if (!userId) return;
+      const { 
+        completedWorkouts, 
+        currentDay: savedCurrentDay, 
+        lastUnlockTime: savedLastUnlockTime, 
+        isCompleted: planIsCompleted 
+      } = response.data;
+      
+      const now = new Date();
+      const lastWorkout = savedLastUnlockTime ? new Date(savedLastUnlockTime) : null;
+      
+      const isSameDay = lastWorkout && (
+        lastWorkout.getDate() === now.getDate() &&
+        lastWorkout.getMonth() === now.getMonth() &&
+        lastWorkout.getFullYear() === now.getFullYear()
+      );
 
-      await AsyncStorage.setItem(getProgressKey(userId), JSON.stringify({
-        completedDays: newCompletedDays,
-        lastUnlockTime: new Date().toISOString()
-      }));
+      setCompletedDays(completedWorkouts.length);
+      setCurrentDay(savedCurrentDay);
+      setLastUnlockTime(lastWorkout);
+      setIsCompleted(planIsCompleted);
+      setIsWorkoutLocked(isSameDay);
     } catch (error) {
-      console.error("Error saving progress:", error);
+      console.error('Error loading progress:', error);
     }
   };
 
   const completeWorkout = async () => {
-    const newCompletedDays = completedDays + 1;
-    setCompletedDays(newCompletedDays);
-    setCurrentDay(newCompletedDays + 1);
-    setLastUnlockTime(new Date());
-    await saveProgress(newCompletedDays);
+    try {
+      const token = await AsyncStorage.getItem('userToken');
+      
+      const completedDay = parseInt(currentDay);
+      
+      if (isNaN(completedDay)) {
+        console.error('Invalid currentDay value:', currentDay);
+        return;
+      }
 
-    if (newCompletedDays >= plan.duration.weeks * plan.duration.daysPerWeek) {
-      setIsCompleted(true);
+      const response = await axios.post(
+        `${API_BASE_URL}/plans/${plan._id}/progress`,
+        {
+          completedDay: completedDay
+        },
+        { 
+          headers: { 
+            'x-auth-token': token,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+
+      console.log('Progress response:', response.data);
+      
+      const { progress } = response.data;
+      setCompletedDays(progress.completedWorkouts.length);
+      setCurrentDay(progress.currentDay);
+      setLastUnlockTime(new Date(progress.lastUnlockTime));
+      setIsCompleted(progress.isCompleted);
+
+    } catch (error) {
+      console.error('Error details:', {
+        message: error.response?.data?.message,
+        status: error.response?.status,
+        data: error.response?.data
+      });
+      
+      if (error.response?.data?.message) {
+        alert(error.response.data.message);
+      }
     }
   };
 
@@ -119,15 +153,7 @@ const PlanOverview = ({ plan, navigation }) => {
               <View style={styles.daysContainer}>
                 {renderDays(week)}
               </View>
-              <TouchableOpacity 
-                style={[styles.startButton, !canStartWorkout() && styles.disabledButton]}
-                onPress={() => handleDayPress(week, 1)}
-                disabled={!canStartWorkout()}
-              >
-                <Text style={styles.startButtonText}>
-                  {week === Math.ceil(currentDay / daysPerWeek) ? 'START' : 'LOCKED'}
-                </Text>
-              </TouchableOpacity>
+              {renderStartButton(week)}
             </View>
           </View>
         </View>
@@ -181,7 +207,8 @@ const PlanOverview = ({ plan, navigation }) => {
 
   const handleDayPress = (week, day) => {
     const absoluteDay = (week - 1) * daysPerWeek + day;
-    if (absoluteDay === currentDay && canStartWorkout()) {
+    
+    if (absoluteDay === currentDay && canStartWorkout() && !isWorkoutLocked) {
       navigation.navigate('PlanDetail', {
         planId: plan._id,
         week,
@@ -191,13 +218,17 @@ const PlanOverview = ({ plan, navigation }) => {
   };
 
   const canStartWorkout = () => {
-    if (!lastUnlockTime) return true;
+    if (!lastUnlockTime || completedDays === 0) return true;
     
     const now = new Date();
-    const midnight = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
-    const lastWorkoutDay = new Date(lastUnlockTime).getDate();
-    const currentDate = now.getDate();
-    return (lastWorkoutDay !== currentDate) && 
+    const lastWorkout = new Date(lastUnlockTime);
+    
+    const isSameDay = 
+      lastWorkout.getDate() === now.getDate() &&
+      lastWorkout.getMonth() === now.getMonth() &&
+      lastWorkout.getFullYear() === now.getFullYear();
+    
+    return !isSameDay && 
            (currentDay <= plan.duration.weeks * plan.duration.daysPerWeek);
   };
 
@@ -210,18 +241,99 @@ const PlanOverview = ({ plan, navigation }) => {
   };
 
   const resetPlan = async () => {
-    if (!userId) return;
-    
-    setCompletedDays(0);
-    setCurrentDay(1);
-    setIsCompleted(false);
-    setShowCompletionModal(false);
-    await saveProgress(0);
+    try {
+      const token = await AsyncStorage.getItem('userToken');
+      await axios.post(
+        `${API_BASE_URL}/plans/${plan._id}/start`,
+        {},
+        { headers: { 'x-auth-token': token } }
+      );
+      
+      setCompletedDays(0);
+      setCurrentDay(1);
+      setIsCompleted(false);
+      setShowCompletionModal(false);
+      setLastUnlockTime(null);
+    } catch (error) {
+      console.error('Error resetting plan:', error);
+    }
   };
 
   const continueFromLastDay = () => {
     setIsCompleted(false);
     setShowCompletionModal(false);
+  };
+
+  useEffect(() => {
+    const startPlan = async () => {
+      try {
+        const token = await AsyncStorage.getItem('userToken');
+        await axios.post(
+          `${API_BASE_URL}/plans/${plan._id}/start`,
+          {},
+          { headers: { 'x-auth-token': token } }
+        );
+      } catch (error) {
+        // Ignore error if plan already started
+        if (error.response?.status !== 400) {
+          console.error('Error starting plan:', error);
+        }
+      }
+    };
+
+    startPlan();
+  }, [plan._id]);
+
+  const resetTimer = async () => {
+    try {
+      const token = await AsyncStorage.getItem('userToken');
+      await axios.post(
+        `${API_BASE_URL}/plans/${plan._id}/reset-timer`,
+        {},
+        { headers: { 'x-auth-token': token } }
+      );
+      
+      setLastUnlockTime(null);
+      alert('Timer has been reset. You can now complete another workout.');
+    } catch (error) {
+      console.error('Error resetting timer:', error);
+    }
+  };
+
+  useEffect(() => {
+    const checkWorkoutStatus = () => {
+      if (lastUnlockTime) {
+        const now = new Date();
+        const lastWorkout = new Date(lastUnlockTime);
+        
+        const isSameDay = 
+          lastWorkout.getDate() === now.getDate() &&
+          lastWorkout.getMonth() === now.getMonth() &&
+          lastWorkout.getFullYear() === now.getFullYear();
+        
+        setIsWorkoutLocked(isSameDay);
+      }
+    };
+
+    checkWorkoutStatus();
+  }, [lastUnlockTime]);
+
+  const renderStartButton = (week) => {
+    const isDisabled = !canStartWorkout() || isWorkoutLocked;
+    return (
+      <TouchableOpacity 
+        style={[
+          styles.startButton, 
+          isDisabled && styles.disabledButton
+        ]}
+        onPress={() => handleDayPress(week, 1)}
+        disabled={isDisabled}
+      >
+        <Text style={styles.startButtonText}>
+          {week === Math.ceil(currentDay / daysPerWeek) ? 'START' : 'LOCKED'}
+        </Text>
+      </TouchableOpacity>
+    );
   };
 
   return (
@@ -256,6 +368,14 @@ const PlanOverview = ({ plan, navigation }) => {
             <Text style={styles.startButtonText}>
               FINISHED
             </Text>
+          </TouchableOpacity>
+        )}
+        {__DEV__ && (  // Chỉ hiển thị trong development mode
+          <TouchableOpacity 
+            style={[styles.startButton, { marginTop: 5 }]} 
+            onPress={resetTimer}
+          >
+            <Text style={styles.startButtonText}>Reset Timer (Dev Only)</Text>
           </TouchableOpacity>
         )}
       </View>
