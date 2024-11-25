@@ -130,7 +130,10 @@ const PTPlansDetail = ({ route }) => {
           style={styles.startButton}
           onPress={() =>
             navigation.navigate("Workout", {
-              exercises: currentDayData.exercises,
+              exercises: currentDayData.exercises.map(exercise => ({
+                ...exercise,
+                level: currentDayData.level
+              })),
               planId: planId,
               week: currentWeek,
               day: currentDay,
