@@ -6,6 +6,7 @@ import { getUserInfo } from '../config/api';
 import { EventRegister } from 'react-native-event-listeners';
 import axios from 'axios';
 import { API_BASE_URL } from '@env';
+import LottieView from 'lottie-react-native';
 const PlanOverview = ({ plan, navigation, route }) => {
   const [currentDay, setCurrentDay] = useState(1);
   const [completedDays, setCompletedDays] = useState(0);
@@ -14,6 +15,7 @@ const PlanOverview = ({ plan, navigation, route }) => {
   const [showCompletionModal, setShowCompletionModal] = useState(false);
   const [isWorkoutLocked, setIsWorkoutLocked] = useState(false);
   const [userId, setUserId] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const initializeUser = async () => {
@@ -25,6 +27,10 @@ const PlanOverview = ({ plan, navigation, route }) => {
         }
       } catch (error) {
         console.error("Error getting user info:", error);
+      } finally {
+        setTimeout(() => {
+          setIsLoading(false);
+        }, 1000);
       }
     };
 
@@ -338,72 +344,85 @@ const PlanOverview = ({ plan, navigation, route }) => {
 
   return (
     <View style={styles.container}>
-      <ImageBackground 
-        source={plan.backgroundImage ? { uri: plan.backgroundImage } : require('../assets/banner/banner1.jpg')}
-        style={styles.header}
-      >
-        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-          <Icon name="chevron-left" size={30} color="#FD6300" />
-        </TouchableOpacity>
-        <Text style={styles.title}>{plan.title.toUpperCase()}</Text>
-        <Text style={styles.subtitle}>{plan.subtitle.toUpperCase()}</Text>
-      </ImageBackground>
-
-      <View style={styles.content}>
-        <View style={styles.progressContainer}>
-          <Text style={styles.progressText}>{completedDays} / {totalDays} Days Finished</Text>
-          <View style={styles.progressBar}>
-            <View style={[styles.progressFill, { width: `${(completedDays / totalDays) * 100}%` }]} />
-          </View>
-          <Text style={styles.progressPercentage}>{Math.round((completedDays / totalDays) * 100)}%</Text>
+      {isLoading ? (
+        <View style={styles.loadingContainer}>
+          <LottieView
+            source={require('../assets/animation/Loading.json')}
+            autoPlay
+            loop
+            style={styles.loadingAnimation}
+          />
         </View>
-        <ScrollView style={styles.scrollView}>
-          {renderWeeks()}
-        </ScrollView>
-        {isCompleted && (
-          <TouchableOpacity 
-            style={styles.startButton}
-            onPress={handleStartButtonPress}
+      ) : (
+        <>
+          <ImageBackground 
+            source={plan.backgroundImage ? { uri: plan.backgroundImage } : require('../assets/banner/banner1.jpg')}
+            style={styles.header}
           >
-            <Text style={styles.startButtonText}>
-              FINISHED
-            </Text>
-          </TouchableOpacity>
-        )}
-        {__DEV__ && (  // Chỉ hiển thị trong development mode
-          <TouchableOpacity 
-            style={[styles.startButton, { marginTop: 5 }]} 
-            onPress={resetTimer}
-          >
-            <Text style={styles.startButtonText}>Reset Timer (Dev Only)</Text>
-          </TouchableOpacity>
-        )}
-      </View>
+            <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+              <Icon name="chevron-left" size={30} color="#FD6300" />
+            </TouchableOpacity>
+            <Text style={styles.title}>{plan.title.toUpperCase()}</Text>
+            <Text style={styles.subtitle}>{plan.subtitle.toUpperCase()}</Text>
+          </ImageBackground>
 
-      <Modal
-        visible={showCompletionModal}
-        transparent={true}
-        animationType="slide"
-      >
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Congratulations!</Text>
-            <Text style={styles.modalText}>You've completed the plan. What would you like to do next?</Text>
-            <TouchableOpacity style={styles.modalButton} onPress={resetPlan}>
-              <Text style={styles.modalButtonText}>Start Over</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.modalButton} onPress={continueFromLastDay}>
-              <Text style={styles.modalButtonText}>Continue from Last Day</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.modalButton} onPress={() => navigation.navigate("AllPlans")}>
-              <Text style={styles.modalButtonText}>More plan</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.modalButton} onPress={() => setShowCompletionModal(false)}>
-              <Text style={styles.modalButtonText}>Close</Text>
-            </TouchableOpacity>
+          <View style={styles.content}>
+            <View style={styles.progressContainer}>
+              <Text style={styles.progressText}>{completedDays} / {totalDays} Days Finished</Text>
+              <View style={styles.progressBar}>
+                <View style={[styles.progressFill, { width: `${(completedDays / totalDays) * 100}%` }]} />
+              </View>
+              <Text style={styles.progressPercentage}>{Math.round((completedDays / totalDays) * 100)}%</Text>
+            </View>
+            <ScrollView style={styles.scrollView}>
+              {renderWeeks()}
+            </ScrollView>
+            {isCompleted && (
+              <TouchableOpacity 
+                style={styles.startButton}
+                onPress={handleStartButtonPress}
+              >
+                <Text style={styles.startButtonText}>
+                  FINISHED
+                </Text>
+              </TouchableOpacity>
+            )}
+            {__DEV__ && (  // Chỉ hiển thị trong development mode
+              <TouchableOpacity 
+                style={[styles.startButton, { marginTop: 5 }]} 
+                onPress={resetTimer}
+              >
+                <Text style={styles.startButtonText}>Reset Timer (Dev Only)</Text>
+              </TouchableOpacity>
+            )}
           </View>
-        </View>
-      </Modal>
+
+          <Modal
+            visible={showCompletionModal}
+            transparent={true}
+            animationType="slide"
+          >
+            <View style={styles.modalContainer}>
+              <View style={styles.modalContent}>
+                <Text style={styles.modalTitle}>Congratulations!</Text>
+                <Text style={styles.modalText}>You've completed the plan. What would you like to do next?</Text>
+                <TouchableOpacity style={styles.modalButton} onPress={resetPlan}>
+                  <Text style={styles.modalButtonText}>Start Over</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.modalButton} onPress={continueFromLastDay}>
+                  <Text style={styles.modalButtonText}>Continue from Last Day</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.modalButton} onPress={() => navigation.navigate("AllPlans")}>
+                  <Text style={styles.modalButtonText}>More plan</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.modalButton} onPress={() => setShowCompletionModal(false)}>
+                  <Text style={styles.modalButtonText}>Close</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </Modal>
+        </>
+      )}
     </View>
   );
 };
@@ -623,6 +642,10 @@ modalContainer: {
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  loadingAnimation: {
+    width: 200,
+    height: 200,
   },
 });
 
