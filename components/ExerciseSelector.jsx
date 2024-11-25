@@ -4,7 +4,9 @@ import {
   Text,
   TouchableOpacity,
   ScrollView,
-  StyleSheet
+  StyleSheet,
+  Modal,
+  TextInput
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
@@ -15,6 +17,13 @@ const ExerciseSelector = ({ route, navigation }) => {
   const [focusAreas, setFocusAreas] = useState([]);
   const [selectedExercises, setSelectedExercises] = useState([]);
   const [availableExercises, setAvailableExercises] = useState([]);
+  const [selectedExerciseDetails, setSelectedExerciseDetails] = useState(null);
+  const [exerciseParams, setExerciseParams] = useState({
+    sets: '',
+    reps: '',
+    duration: ''
+  });
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
 
   useEffect(() => {
     fetchAvailableExercises();
@@ -41,10 +50,27 @@ const ExerciseSelector = ({ route, navigation }) => {
   };
 
   const handleExerciseSelect = (exercise) => {
-    if (selectedExercises.includes(exercise)) {
-      setSelectedExercises(selectedExercises.filter(e => e !== exercise));
-    } else {
-      setSelectedExercises([...selectedExercises, exercise]);
+    setSelectedExerciseDetails(exercise);
+    setExerciseParams({
+      sets: '',
+      reps: '',
+      duration: ''
+    });
+    setShowDetailsModal(true);
+  };
+
+  const handleAddExercise = () => {
+    if (selectedExerciseDetails) {
+      const exerciseWithParams = {
+        ...selectedExerciseDetails,
+        sets: parseInt(exerciseParams.sets) || 1,
+        reps: parseInt(exerciseParams.reps) || 0,
+        duration: parseInt(exerciseParams.duration) || 0
+      };
+      
+      setSelectedExercises(prev => [...prev, exerciseWithParams]);
+      setShowDetailsModal(false);
+      setSelectedExerciseDetails(null);
     }
   };
 
@@ -71,6 +97,75 @@ const ExerciseSelector = ({ route, navigation }) => {
      equipmentNeeded.includes(exercise.equipment)) &&
     (focusAreas.length === 0 || 
      focusAreas.every(area => exercise.bodyPart?.includes(area)))
+  );
+
+  const renderExerciseDetailsModal = () => (
+    <Modal
+      visible={showDetailsModal}
+      transparent
+      animationType="slide"
+      onRequestClose={() => setShowDetailsModal(false)}
+    >
+      <View style={styles.modalContainer}>
+        <View style={styles.modalContent}>
+          <Text style={styles.modalTitle}>
+            {selectedExerciseDetails?.name}
+          </Text>
+          
+          <View style={styles.inputContainer}>
+            <Text style={styles.inputLabel}>Sets</Text>
+            <TextInput
+              style={styles.input}
+              value={exerciseParams.sets}
+              onChangeText={(text) => setExerciseParams(prev => ({ ...prev, sets: text }))}
+              keyboardType="numeric"
+              placeholder="Enter sets"
+              placeholderTextColor="#666"
+            />
+          </View>
+
+          <View style={styles.inputContainer}>
+            <Text style={styles.inputLabel}>Reps</Text>
+            <TextInput
+              style={styles.input}
+              value={exerciseParams.reps}
+              onChangeText={(text) => setExerciseParams(prev => ({ ...prev, reps: text }))}
+              keyboardType="numeric"
+              placeholder="Enter reps"
+              placeholderTextColor="#666"
+            />
+          </View>
+
+          <View style={styles.inputContainer}>
+            <Text style={styles.inputLabel}>Duration (Minutes)</Text>
+            <TextInput
+              style={styles.input}
+              value={exerciseParams.duration}
+              onChangeText={(text) => setExerciseParams(prev => ({ ...prev, duration: text }))}
+              keyboardType="numeric"
+              placeholder="Enter duration"
+              placeholderTextColor="#666"
+            />
+          </View>
+
+          <View style={styles.modalButtons}>
+            <TouchableOpacity
+              style={[styles.modalButton, styles.cancelButton]}
+              onPress={() => setShowDetailsModal(false)}
+            >
+              <Text style={styles.modalButtonText}>Cancel</Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity
+              style={[styles.modalButton, styles.addButton]}
+              onPress={handleAddExercise}
+            >
+              <Text style={styles.modalButtonText}>Add Exercise</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </Modal>
   );
 
   return (
@@ -170,6 +265,7 @@ const ExerciseSelector = ({ route, navigation }) => {
       >
         <Text style={styles.doneButtonText}>Done</Text>
       </TouchableOpacity>
+      {renderExerciseDetailsModal()}
     </View>
   );
 };
@@ -280,6 +376,59 @@ const styles = StyleSheet.create({
   filterValue: {
     color: 'coral',
     flex: 1,
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalContent: {
+    backgroundColor: '#1A1A1A',
+    padding: 20,
+    borderRadius: 12,
+    width: '90%',
+  },
+  modalTitle: {
+    color: 'white',
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  inputContainer: {
+    marginBottom: 16,
+  },
+  inputLabel: {
+    color: 'white',
+    marginBottom: 8,
+  },
+  input: {
+    backgroundColor: '#333',
+    color: 'white',
+    padding: 12,
+    borderRadius: 8,
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 20,
+  },
+  modalButton: {
+    padding: 12,
+    borderRadius: 8,
+    width: '48%',
+  },
+  cancelButton: {
+    backgroundColor: '#444',
+  },
+  addButton: {
+    backgroundColor: 'coral',
+  },
+  modalButtonText: {
+    color: 'white',
+    textAlign: 'center',
+    fontWeight: 'bold',
   },
 });
 

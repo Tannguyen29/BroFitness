@@ -154,8 +154,16 @@ const MainPage = () => {
           <Text style={styles.planDescription} numberOfLines={3}>
             {item.description}
           </Text>
-          <TouchableOpacity style={styles.startButton}>
-            <Text style={[styles.startButtonText, { color: item.accentColor }]} onPress={() => navigation.navigate('PlanOverview', { planId: item._id })}>START</Text>
+          <TouchableOpacity 
+            style={styles.startButton}
+            onPress={(e) => {
+              e.stopPropagation();
+              navigation.navigate('PlanOverview', { planId: item._id });
+            }}
+          >
+            <Text style={[styles.startButtonText, { color: item.accentColor }]}>
+              START
+            </Text>
           </TouchableOpacity>
         </View>
       </ImageBackground>
