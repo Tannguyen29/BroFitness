@@ -45,9 +45,9 @@ const EditPlan = ({ route, navigation }) => {
       
       const plan = response.data;
       
-      // Populate all the state with existing plan data
+
       setTitle(plan.title);
-      setSelectedStudents(plan.students.map(student => student.studentId));
+      setSelectedStudents(plan.students.map(student => student.studentId._id || student.studentId));
       setExperienceLevels(plan.targetAudience.experienceLevels || []);
       setFitnessGoals(plan.targetAudience.fitnessGoals || []);
       setEquipmentNeeded(plan.targetAudience.equipmentNeeded || []);
@@ -55,7 +55,6 @@ const EditPlan = ({ route, navigation }) => {
       setWeeks(plan.duration.weeks.toString());
       setDaysPerWeek(plan.duration.daysPerWeek.toString());
 
-      // Transform weeks data into exercises array format
       const transformedExercises = [];
       plan.weeks.forEach(week => {
         week.days.forEach(day => {
@@ -111,6 +110,39 @@ const EditPlan = ({ route, navigation }) => {
 
   const handleUpdatePlan = async () => {
     try {
+      if (!title.trim()) {
+        Alert.alert('Error', 'Please enter a plan title');
+        return;
+      }
+      if (!weeks || parseInt(weeks) <= 0) {
+        Alert.alert('Error', 'Please enter a valid number of weeks');
+        return;
+      }
+      if (!daysPerWeek || parseInt(daysPerWeek) <= 0) {
+        Alert.alert('Error', 'Please enter a valid number of days per week');
+        return;
+      }
+      if (selectedStudents.length === 0) {
+        Alert.alert('Error', 'Please select at least one student');
+        return;
+      }
+      if (experienceLevels.length === 0) {
+        Alert.alert('Error', 'Please select at least one experience level');
+        return;
+      }
+      if (fitnessGoals.length === 0) {
+        Alert.alert('Error', 'Please select at least one fitness goal');
+        return;
+      }
+      if (equipmentNeeded.length === 0) {
+        Alert.alert('Error', 'Please select at least one equipment type');
+        return;
+      }
+      if (exercises.length === 0) {
+        Alert.alert('Error', 'Please add at least one exercise to the plan');
+        return;
+      }
+
       const token = await AsyncStorage.getItem('userToken');
       const planData = {
         title,
@@ -328,7 +360,22 @@ const EditPlan = ({ route, navigation }) => {
             .filter(e => e.weekNumber === currentWeek && e.dayNumber === currentDay)
             .map((exerciseItem, index) => (
               <View key={index} style={styles.exerciseItem}>
-                <Text style={styles.exerciseName}>{exerciseItem.exercise.name}</Text>
+                <View style={styles.exerciseDetails}>
+                  <Text style={styles.exerciseName}>
+                    {exerciseItem.exercise.name}
+                  </Text>
+                  <View style={styles.exerciseParams}>
+                    <Text style={styles.paramText}>
+                      Sets: {exerciseItem.exercise.sets || 0}
+                    </Text>
+                    <Text style={styles.paramText}>
+                      Reps: {exerciseItem.exercise.reps || 0}
+                    </Text>
+                    <Text style={styles.paramText}>
+                      Duration: {exerciseItem.exercise.duration || 0} min
+                    </Text>
+                  </View>
+                </View>
                 <TouchableOpacity
                   style={styles.removeButton}
                   onPress={() => {
@@ -579,10 +626,24 @@ header: {
     justifyContent: 'space-between',
     alignItems: 'center',
   },
+  exerciseDetails: {
+    flex: 1,
+    marginRight: 10,
+  },
   exerciseName: {
     color: 'white',
     fontSize: 16,
-    flex: 1,
+    marginBottom: 4,
+    fontWeight: 'bold',
+  },
+  exerciseParams: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  paramText: {
+    color: '#888',
+    fontSize: 12,
   },
   addExerciseButton: {
     backgroundColor: 'coral',
@@ -600,7 +661,6 @@ header: {
     backgroundColor: '#FF4444',
     padding: 8,
     borderRadius: 8,
-    marginLeft: 8,
   },
   removeButtonText: {
     color: 'white',
@@ -611,6 +671,7 @@ header: {
     padding: 16,
     borderRadius: 8,
     margin: 20,
+    marginBottom: 70,
   },
   updateButtonText: {
     color: 'white',
