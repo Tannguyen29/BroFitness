@@ -6,7 +6,8 @@ import {
   ScrollView, 
   TouchableOpacity, 
   RefreshControl,
-  ActivityIndicator
+  ActivityIndicator,
+  Alert
 } from 'react-native';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -22,17 +23,28 @@ const PersonalTraining = ({ navigation }) => {
     try {
       const token = await AsyncStorage.getItem('userToken');
       
-      const scheduleResponse = await axios.get(`${API_BASE_URL}/student-schedules`, {
-        headers: { 'x-auth-token': token }
-      });
+      const scheduleResponse = await axios.get(
+        `${API_BASE_URL}/schedules/student`, 
+        {
+          headers: { 'x-auth-token': token }
+        }
+      );
       setSchedules(scheduleResponse.data);
 
-      const plansResponse = await axios.get(`${API_BASE_URL}/student-pt-plans`, {
-        headers: { 'x-auth-token': token }
-      });
+      const plansResponse = await axios.get(
+        `${API_BASE_URL}/student-pt-plans`, 
+        {
+          headers: { 'x-auth-token': token }
+        }
+      );
       setPersonalPlans(plansResponse.data);
     } catch (error) {
       console.error('Error fetching data:', error);
+      Alert.alert(
+        'Error',
+        'Failed to load data. Please try again.',
+        [{ text: 'OK' }]
+      );
     } finally {
       setLoading(false);
     }
@@ -66,6 +78,7 @@ const PersonalTraining = ({ navigation }) => {
   };
 
   const navigateToPTPlanOverview = (plan) => {
+    console.log('Navigating to plan:', plan);
     navigation.navigate('PTPlansOverview', { selectedPlanId: plan._id });
   };
 

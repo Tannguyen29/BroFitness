@@ -47,34 +47,46 @@ const EditPlan = ({ route, navigation }) => {
       
 
       setTitle(plan.title);
-      setSelectedStudents(plan.students.map(student => student.studentId._id || student.studentId));
-      setExperienceLevels(plan.targetAudience.experienceLevels || []);
-      setFitnessGoals(plan.targetAudience.fitnessGoals || []);
-      setEquipmentNeeded(plan.targetAudience.equipmentNeeded || []);
-      setActivityLevels(plan.targetAudience.activityLevels || []);
-      setWeeks(plan.duration.weeks.toString());
-      setDaysPerWeek(plan.duration.daysPerWeek.toString());
+      const studentIds = plan.students.map(student => {
+        if (typeof student === 'object' && student !== null) {
+          return student._id || student.studentId;
+        }
+        return student;
+      }).filter(id => id);
+      setSelectedStudents(studentIds);
+      setExperienceLevels(plan.targetAudience?.experienceLevels || []);
+      setFitnessGoals(plan.targetAudience?.fitnessGoals || []);
+      setEquipmentNeeded(plan.targetAudience?.equipmentNeeded || []);
+      setActivityLevels(plan.targetAudience?.activityLevels || []);
+      setWeeks(plan.duration?.weeks?.toString() || '');
+      setDaysPerWeek(plan.duration?.daysPerWeek?.toString() || '');
 
       const transformedExercises = [];
-      plan.weeks.forEach(week => {
-        week.days.forEach(day => {
-          day.exercises.forEach(exercise => {
-            transformedExercises.push({
-              weekNumber: week.weekNumber,
-              dayNumber: day.dayNumber,
-              exercise: {
-                _id: exercise.exerciseId,
-                name: exercise.name,
-                duration: exercise.duration,
-                sets: exercise.sets,
-                reps: exercise.reps,
-                type: exercise.type,
-                gifUrl: exercise.gifUrl
+      if (plan.weeks && Array.isArray(plan.weeks)) {
+        plan.weeks.forEach(week => {
+          if (week.days && Array.isArray(week.days)) {
+            week.days.forEach(day => {
+              if (day.exercises && Array.isArray(day.exercises)) {
+                day.exercises.forEach(exercise => {
+                  transformedExercises.push({
+                    weekNumber: week.weekNumber,
+                    dayNumber: day.dayNumber,
+                    exercise: {
+                      _id: exercise.exerciseId?._id || exercise.exerciseId,
+                      name: exercise.name,
+                      duration: exercise.duration || 0,
+                      sets: exercise.sets || 1,
+                      reps: exercise.reps || 0,
+                      type: exercise.type || '',
+                      gifUrl: exercise.gifUrl || ''
+                    }
+                  });
+                });
               }
             });
-          });
+          }
         });
-      });
+      }
       setExercises(transformedExercises);
     } catch (error) {
       console.error('Error fetching plan details:', error);
@@ -87,7 +99,7 @@ const EditPlan = ({ route, navigation }) => {
   const fetchAvailableStudents = async () => {
     try {
       const token = await AsyncStorage.getItem('userToken');
-      const response = await axios.get(`${API_BASE_URL}/pro-users`, {
+      const response = await axios.get(`${API_BASE_URL}/pt-plans/pro-users`, {
         headers: { 'x-auth-token': token }
       });
       setAvailableStudents(response.data);

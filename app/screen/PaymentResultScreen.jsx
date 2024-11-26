@@ -19,7 +19,7 @@ const PaymentResultScreen = ({ navigation }) => {
             const maxRetries = 3;
             
             while (retryCount < maxRetries) {
-              const response = await axios.get(`${API_BASE_URL}/user-info`, {
+              const response = await axios.get(`${API_BASE_URL}/users/info`, {
                 headers: {
                   'x-auth-token': token
                 }

@@ -17,7 +17,7 @@ const HomeScreen  = () => {
             try {
                 const token = await AsyncStorage.getItem('userToken');
                 if (token) {
-                    const response = await axios.get(`${API_BASE_URL}/premium-status`, {
+                    const response = await axios.get(`${API_BASE_URL}/payment/premium-status`, {
                         headers: { 'x-auth-token': token }
                     });
                     console.log('Home screen - Premium status:', response.data);

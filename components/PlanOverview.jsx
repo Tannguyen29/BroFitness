@@ -17,26 +17,6 @@ const PlanOverview = ({ plan, navigation, route }) => {
   const [userId, setUserId] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    const initializeUser = async () => {
-      try {
-        const userInfo = await getUserInfo();
-        if (userInfo && userInfo.token) {
-          setUserId(userInfo.token);
-          await loadProgress(userInfo.token);
-        }
-      } catch (error) {
-        console.error("Error getting user info:", error);
-      } finally {
-        setTimeout(() => {
-          setIsLoading(false);
-        }, 1000);
-      }
-    };
-
-    initializeUser();
-  }, []);
-
   const getProgressKey = (userId) => {
     return `plan_progress_${userId}_${plan._id}`;
   };
@@ -56,34 +36,41 @@ const PlanOverview = ({ plan, navigation, route }) => {
   const loadProgress = async () => {
     try {
       const token = await AsyncStorage.getItem('userToken');
-      const response = await axios.get(
-        `${API_BASE_URL}/plans/${plan._id}/progress`,
-        { headers: { 'x-auth-token': token } }
-      );
-
-      const { 
-        completedWorkouts, 
-        currentDay: savedCurrentDay, 
-        lastUnlockTime: savedLastUnlockTime, 
-        isCompleted: planIsCompleted 
-      } = response.data;
       
-      const now = new Date();
-      const lastWorkout = savedLastUnlockTime ? new Date(savedLastUnlockTime) : null;
-      
-      const isSameDay = lastWorkout && (
-        lastWorkout.getDate() === now.getDate() &&
-        lastWorkout.getMonth() === now.getMonth() &&
-        lastWorkout.getFullYear() === now.getFullYear()
-      );
+      if (!plan?._id) {
+        console.error('Plan ID is undefined');
+        return;
+      }
 
-      setCompletedDays(completedWorkouts.length);
-      setCurrentDay(savedCurrentDay);
-      setLastUnlockTime(lastWorkout);
-      setIsCompleted(planIsCompleted);
-      setIsWorkoutLocked(isSameDay);
+      const response = await axios.post(
+        `${API_BASE_URL}/plan-progress/${plan._id}/start`,
+        {},
+        { 
+          headers: { 
+            'x-auth-token': token,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+      
+      if (response.data.isExisting) {
+        console.log('Loaded existing plan progress');
+      } else {
+        console.log('Started new plan progress');
+      }
+      
+      const progress = response.data.progress;
+      if (progress) {
+        setCurrentDay(progress.currentDay);
+        setCompletedDays(progress.completedWorkouts.length);
+        setLastUnlockTime(progress.lastUnlockTime);
+        setIsCompleted(progress.completedWorkouts.length >= 
+          (plan.duration.weeks * plan.duration.daysPerWeek));
+      }
     } catch (error) {
-      console.error('Error loading progress:', error);
+      if (error.response?.status !== 400) {
+        console.log('Error loading plan progress:', error.message);
+      }
     }
   };
 
@@ -99,7 +86,7 @@ const PlanOverview = ({ plan, navigation, route }) => {
       }
 
       const response = await axios.post(
-        `${API_BASE_URL}/plans/${plan._id}/progress`,
+        `${API_BASE_URL}/plan-progress/${plan._id}/progress`,
         {
           completedDay: completedDay
         },
@@ -120,15 +107,7 @@ const PlanOverview = ({ plan, navigation, route }) => {
       setIsCompleted(progress.isCompleted);
 
     } catch (error) {
-      console.error('Error details:', {
-        message: error.response?.data?.message,
-        status: error.response?.status,
-        data: error.response?.data
-      });
-      
-      if (error.response?.data?.message) {
-        alert(error.response.data.message);
-      }
+      console.error('Error updating progress:', error);
     }
   };
 
@@ -271,24 +250,24 @@ const PlanOverview = ({ plan, navigation, route }) => {
   };
 
   useEffect(() => {
-    const startPlan = async () => {
+    const initializeUser = async () => {
       try {
-        const token = await AsyncStorage.getItem('userToken');
-        await axios.post(
-          `${API_BASE_URL}/plans/${plan._id}/start`,
-          {},
-          { headers: { 'x-auth-token': token } }
-        );
-      } catch (error) {
-        // Ignore error if plan already started
-        if (error.response?.status !== 400) {
-          console.error('Error starting plan:', error);
+        const userInfo = await getUserInfo();
+        if (userInfo && userInfo.token) {
+          setUserId(userInfo.token);
+          await loadProgress(userInfo.token);
         }
+      } catch (error) {
+        console.error("Error getting user info:", error);
+      } finally {
+        setTimeout(() => {
+          setIsLoading(false);
+        }, 1000);
       }
     };
 
-    startPlan();
-  }, [plan._id]);
+    initializeUser();
+  }, []);
 
   const resetTimer = async () => {
     try {

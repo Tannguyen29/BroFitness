@@ -6,7 +6,8 @@ import {
   View, 
   TouchableOpacity, 
   Modal,
-  ScrollView
+  ScrollView,
+  Alert
 } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import DateTimePickerModal from "react-native-modal-datetime-picker";
@@ -39,12 +40,20 @@ const CalendarScreen = () => {
   const fetchStudents = async () => {
     try {
       const token = await AsyncStorage.getItem('userToken');
-      const response = await axios.get(`${API_BASE_URL}/students`, {
-        headers: { 'x-auth-token': token }
-      });
+      const response = await axios.get(
+        `${API_BASE_URL}/users/pt/students`,
+        {
+          headers: { 'x-auth-token': token }
+        }
+      );
       setStudents(response.data);
     } catch (error) {
-      console.error('Error fetching students:', error);
+      console.log('Error fetching PT students:', error.message);
+      Alert.alert(
+        'Notice',
+        'Error loading students list',
+        [{ text: 'OK' }]
+      );
     }
   };
 

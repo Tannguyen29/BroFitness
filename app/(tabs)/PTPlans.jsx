@@ -6,7 +6,8 @@ import {
   FlatList, 
   StyleSheet,
   Modal,
-  ScrollView
+  ScrollView,
+  Alert
 } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import axios from 'axios';
@@ -54,9 +55,29 @@ const PTPlans = ({ navigation }) => {
     navigation.navigate('EditPlan', { planId: plan._id });
   };
 
-  const handleViewProgress = (plan) => {
-    setSelectedPlan(plan);
-    setShowProgress(true);
+  const handleViewProgress = async (plan) => {
+    try {
+      const token = await AsyncStorage.getItem('userToken');
+      
+      const response = await axios.get(
+        `${API_BASE_URL}/pt-plan-progress/${plan._id}/students-progress`,
+        { headers: { 'x-auth-token': token } }
+      );
+
+      const updatedPlan = {
+        ...plan,
+        students: response.data.students
+      };
+
+      setSelectedPlan(updatedPlan);
+      setShowProgress(true);
+    } catch (error) {
+      console.error('Error fetching students progress:', error);
+      Alert.alert(
+        'Error', 
+        'Failed to load students progress. Please try again.'
+      );
+    }
   };
 
   const renderProgressModal = () => (

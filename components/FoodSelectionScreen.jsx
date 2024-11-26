@@ -224,7 +224,7 @@ const FoodSelectionScreen = ({ route }) => {
       // Ensure date is properly formatted as ISO string
       const formattedDate = new Date(currentMealDate).toISOString();
   
-      const response = await axios.post(`${API_BASE_URL}/savemeals`, {
+      const response = await axios.post(`${API_BASE_URL}/nutrition/meals`, {
         mealType: currentMealType,
         foods: selectedFoods,
         date: formattedDate // Send as ISO string
