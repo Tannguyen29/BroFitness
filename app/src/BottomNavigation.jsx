@@ -29,7 +29,7 @@ const BottomNavigation = () => {
           setIsLoading(false);
           return;
         }
-        const response = await axios.get(`${API_BASE_URL}/user-info`, {
+        const response = await axios.get(`${API_BASE_URL}/users/info`, {
           headers: { 'x-auth-token': token }
         });
 

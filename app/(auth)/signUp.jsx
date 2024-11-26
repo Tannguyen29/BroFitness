@@ -69,7 +69,7 @@ const SignUp = ({ navigation }) => {
     }
 
     try {
-      await axios.post(`${API_BASE_URL}/signup`, { name, email, password });
+      await axios.post(`${API_BASE_URL}/auth/signup`, { name, email, password });
       navigation.navigate("OtpInput", { email });
     } catch (error) {
       setError(error.response ? error.response.data : 'Error signing up');

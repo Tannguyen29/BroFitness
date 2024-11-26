@@ -7,49 +7,164 @@ import {
   TouchableOpacity,
   RefreshControl,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_BASE_URL } from '@env';
 import { Icon } from "@rneui/themed";
+import { EventRegister } from 'react-native-event-listeners';
 
 const PTPlansOverview = ({ navigation, route }) => {
+  // Kiểm tra params
+  if (!route?.params?.selectedPlanId) {
+    console.error('No planId provided');
+    return (
+      <View style={styles.errorContainer}>
+        <Text style={styles.errorText}>Invalid plan data</Text>
+        <TouchableOpacity 
+          style={styles.backButton}
+          onPress={() => navigation.goBack()}
+        >
+          <Text style={styles.backButtonText}>Go Back</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
   const [plan, setPlan] = useState(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [progress, setProgress] = useState(null);
   const { selectedPlanId } = route.params;
 
-  const fetchPlan = async () => {
+  // Thêm useEffect để fetch data khi component mount
+  useEffect(() => {
+    fetchPlan();
+  }, []);
+
+  useEffect(() => {
+    const listener = EventRegister.addEventListener('workoutCompleted', async (data) => {
+      if (data.planId === selectedPlanId) {
+        await saveWorkoutProgress(data.workoutData);
+      }
+    });
+
+    return () => {
+      EventRegister.removeEventListener(listener);
+    };
+  }, [selectedPlanId]);
+
+  // Thêm hàm onRefresh
+  const onRefresh = React.useCallback(() => {
+    setRefreshing(true);
+    fetchPlan().finally(() => setRefreshing(false));
+  }, []);
+
+  const saveWorkoutProgress = async (workoutData) => {
     try {
       const token = await AsyncStorage.getItem('userToken');
-      const response = await axios.get(`${API_BASE_URL}/student-pt-plans/${selectedPlanId}`, {
-        headers: { 'x-auth-token': token }
-      });
+      if (!token) {
+        throw new Error("No user token found");
+      }
+
+      const response = await axios.post(
+        `${API_BASE_URL}/pt-plan-progress/${selectedPlanId}/progress`,
+        { 
+          completedDay: workoutData.completedDay
+        },
+        { headers: { 'x-auth-token': token } }
+      );
+
+      if (response.data) {
+        setProgress(response.data.progress);
+        await fetchPlan();
+      }
+    } catch (error) {
+      console.error("Error saving PT workout progress:", error);
+      Alert.alert(
+        "Error",
+        error.response?.data?.message || "Failed to save workout progress"
+      );
+    }
+  };
+
+  // Sửa lại fetchPlan để cũng lấy progress từ AsyncStorage
+  const fetchPlan = async () => {
+    try {
+      setLoading(true);
+      const token = await AsyncStorage.getItem('userToken');
+      
+      // Lấy thông tin plan và progress trong cùng một request
+      const response = await axios.get(
+        `${API_BASE_URL}/student-pt-plans/${selectedPlanId}`, 
+        { headers: { 'x-auth-token': token } }
+      );
+      
       setPlan(response.data);
+      
+      // Cập nhật progress từ response
+      if (response.data.progress) {
+        setProgress(response.data.progress);
+        
+        // Lưu progress vào AsyncStorage như backup
+        const progressKey = `pt_plan_progress_${token}_${selectedPlanId}`;
+        await AsyncStorage.setItem(progressKey, JSON.stringify(response.data.progress));
+      }
     } catch (error) {
       console.error('Error fetching PT plan:', error);
+      Alert.alert('Error', 'Failed to load plan details');
     } finally {
       setLoading(false);
     }
   };
 
-  useEffect(() => {
-    fetchPlan();
-  }, [selectedPlanId]);
+  // Thêm hàm start plan
+  const startPlan = async () => {
+    try {
+      const token = await AsyncStorage.getItem('userToken');
+      const response = await axios.post(
+        `${API_BASE_URL}/pt-plan-progress/${selectedPlanId}/start`,
+        {},
+        { headers: { 'x-auth-token': token } }
+      );
+      setProgress(response.data);
+    } catch (error) {
+      if (error.response?.status === 400) {
+        console.log('Plan already started');
+      } else {
+        console.error('Error starting plan:', error);
+        Alert.alert('Error', 'Failed to start plan. Please try again.');
+      }
+    }
+  };
 
-  const onRefresh = React.useCallback(() => {
-    setRefreshing(true);
-    fetchPlan().finally(() => setRefreshing(false));
-  }, [selectedPlanId]);
+  const handlePlanPress = async () => {
+    
+    if (!progress) {
+      await startPlan();
+    }
+    
+    navigation.navigate('PTPlansDetail', { 
+      planId: plan._id,
+      planDetails: plan,
+      currentWeek: Math.ceil(progress?.currentDay / plan.duration.daysPerWeek) || 1,
+      currentDay: progress?.currentDay || 1
+    });
+  };
 
-  const renderDays = (week, daysPerWeek, currentDay) => {
+  // Cập nhật renderDays để sử dụng progress mới
+  const renderDays = (week, daysPerWeek) => {
     let dayComponents = [];
     for (let day = 1; day <= daysPerWeek; day++) {
       const absoluteDay = (week - 1) * daysPerWeek + day;
-      const isCompleted = absoluteDay < currentDay;
-      const isCurrent = absoluteDay === currentDay;
-      const isLocked = absoluteDay > currentDay;
+      const isCompleted = progress?.completedWorkouts?.some(
+        workout => workout.dayNumber === absoluteDay
+      );
+      const isCurrent = progress?.currentDay === absoluteDay;
+      const isLocked = !progress?.currentDay || absoluteDay > progress.currentDay;
 
+      // Phần render UI giữ nguyên
       dayComponents.push(
         <React.Fragment key={`day-${day}`}>
           <View style={styles.dayItem}>
@@ -81,24 +196,24 @@ const PTPlansOverview = ({ navigation, route }) => {
     return dayComponents;
   };
 
-  const handlePlanPress = () => {
-    navigation.navigate('PTPlansDetail', { 
-      planId: plan._id,
-      planDetails: plan,
-      currentWeek: 1,
-      currentDay: 1
-    });
-  };
-
+  // Sửa lại renderWeeks để kiểm tra plan tồn tại
   const renderWeeks = (plan) => {
-    const completedDays = plan.progress?.length || 0;
-    const currentDay = completedDays + 1;
-    const weeks = plan.duration?.weeks || 0;
-    const daysPerWeek = plan.duration?.daysPerWeek || 0;
+    if (!plan?.duration) {
+      console.error('Invalid plan data:', plan);
+      return null;
+    }
+
+    const weeks = plan.duration.weeks;
+    const daysPerWeek = plan.duration.daysPerWeek;
+    const currentWeek = Math.ceil((progress?.currentDay || 1) / daysPerWeek);
 
     let weekComponents = [];
     for (let week = 1; week <= weeks; week++) {
-      const isCurrentWeek = Math.ceil(currentDay / daysPerWeek) === week;
+      const isCurrentWeek = currentWeek === week;
+      const completedDaysInWeek = progress?.completedWorkouts?.filter(
+        workout => workout.weekNumber === week
+      ).length || 0;
+
       weekComponents.push(
         <View key={`week-${week}`} style={styles.weekContainer}>
           <View style={styles.weekSideContainer}>
@@ -117,17 +232,21 @@ const PTPlansOverview = ({ navigation, route }) => {
                 <Text style={styles.weekTitle}>WEEK {week}</Text>
               </View>
               <Text style={styles.weekProgress}>
-                {Math.min(daysPerWeek, currentDay - ((week - 1) * daysPerWeek))}/{daysPerWeek}
+                {completedDaysInWeek}/{daysPerWeek}
               </Text>
             </View>
             
             <View style={styles.weekBox}>
               <View style={styles.daysContainer}>
-                {renderDays(week, daysPerWeek, currentDay)}
+                {renderDays(week, daysPerWeek)}
               </View>
               <TouchableOpacity 
-                style={styles.startButton}
-                onPress={() => handlePlanPress()}
+                style={[
+                  styles.startButton,
+                  !isCurrentWeek && styles.disabledButton
+                ]}
+                onPress={handlePlanPress}
+                disabled={!isCurrentWeek}
               >
                 <Text style={styles.startButtonText}>
                   {isCurrentWeek ? 'START' : 'LOCKED'}
@@ -141,9 +260,10 @@ const PTPlansOverview = ({ navigation, route }) => {
     return weekComponents;
   };
 
+  // Sửa lại return statement để hiển thị loading và error states
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
+      <View style={[styles.container, styles.centerContent]}>
         <ActivityIndicator size="large" color="#FD6300" />
       </View>
     );
@@ -151,15 +271,14 @@ const PTPlansOverview = ({ navigation, route }) => {
 
   if (!plan) {
     return (
-      <View style={styles.emptyContainer}>
-        <Icon name="calendar" type="feather" size={50} color="#666" />
-        <Text style={styles.emptyText}>Plan not found</Text>
+      <View style={[styles.container, styles.centerContent]}>
+        <Text style={styles.errorText}>Failed to load plan details</Text>
+        <TouchableOpacity style={styles.retryButton} onPress={fetchPlan}>
+          <Text style={styles.retryButtonText}>Retry</Text>
+        </TouchableOpacity>
       </View>
     );
   }
-
-  const totalDays = (plan.duration?.weeks || 0) * (plan.duration?.daysPerWeek || 0);
-  const completedDays = plan.progress?.length || 0;
 
   return (
     <ScrollView 
@@ -181,18 +300,22 @@ const PTPlansOverview = ({ navigation, route }) => {
                  
         <View style={styles.progressContainer}>
           <Text style={styles.progressText}>
-            {completedDays} / {totalDays} Days Finished
+            {progress?.completedWorkouts?.length || 0} / {plan.duration?.weeks * plan.duration?.daysPerWeek} Days Finished
           </Text>
           <View style={styles.progressBar}>
             <View 
               style={[
                 styles.progressFill,
-                { width: `${(completedDays / totalDays) * 100}%` }
+                { 
+                  width: `${((progress?.completedWorkouts?.length || 0) / 
+                    (plan.duration?.weeks * plan.duration?.daysPerWeek)) * 100}%` 
+                }
               ]} 
             />
           </View>
           <Text style={styles.progressPercentage}>
-            {Math.round((completedDays / totalDays) * 100)}%
+            {Math.round(((progress?.completedWorkouts?.length || 0) / 
+              (plan.duration?.weeks * plan.duration?.daysPerWeek)) * 100)}%
           </Text>
         </View>
 
@@ -355,6 +478,55 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   startButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  currentDay: {
+    backgroundColor: '#FD6300',
+  },
+  completedDayText: {
+    color: '#999999',
+  },
+  currentDayText: {
+    color: '#FFFFFF',
+  },
+  disabledButton: {
+    backgroundColor: '#666666',
+    opacity: 0.5,
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#000000',
+    padding: 20,
+  },
+  errorText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    marginBottom: 20,
+  },
+  backButton: {
+    backgroundColor: '#FD6300',
+    padding: 12,
+    borderRadius: 8,
+  },
+  backButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+  },
+  centerContent: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  retryButton: {
+    backgroundColor: '#FD6300',
+    padding: 12,
+    borderRadius: 8,
+    marginTop: 16,
+  },
+  retryButtonText: {
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: 'bold',

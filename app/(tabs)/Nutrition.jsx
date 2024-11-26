@@ -436,7 +436,7 @@ const Nutrition = () => {
       }
       const formattedDate = moment(date).format('YYYY-MM-DD');
       const response = await axios.get(
-        `${API_BASE_URL}/meals/${formattedDate}/${mealType}`,
+        `${API_BASE_URL}/nutrition/meals/${formattedDate}/${mealType}`,
         {
           headers: { 'x-auth-token': userInfo.token }
         }

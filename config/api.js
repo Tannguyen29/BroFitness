@@ -33,7 +33,7 @@ export const getUserInfo = async () => {
   try {
     const token = await AsyncStorage.getItem('userToken');
     if (token) {
-      const response = await apiClient.get(`${API_BASE_URL}/user-info`, {
+      const response = await apiClient.get(`${API_BASE_URL}/users/info`, {
         headers: { 'x-auth-token': token }
       });
 
@@ -93,7 +93,7 @@ export const getUserInfo = async () => {
 export const updateUserInfo = async (userData) => {
   try {
     const token = await AsyncStorage.getItem('userToken');
-    const response = await axios.put(`${API_BASE_URL}/user-info`, userData, {
+    const response = await axios.put(`${API_BASE_URL}/users/info`, userData, {
       headers: { 'x-auth-token': token }
     });
     return response.data;
@@ -117,7 +117,7 @@ export const uploadAvatar = async (uri) => {
       type: `image/${fileType}`
     });
 
-    const response = await axios.post(`${API_BASE_URL}/upload-avatar`, formData, {
+    const response = await axios.post(`${API_BASE_URL}/users/upload-avatar`, formData, {
       headers: {
         'x-auth-token': token,
         'Content-Type': 'multipart/form-data',
@@ -143,7 +143,7 @@ export const clearUserInfo = async () => {
 
 export const verifyOtp = async (email, otp) => {
   try {
-    const response = await axios.post(`${API_BASE_URL}/verify-otp`, { email, otp });
+    const response = await axios.post(`${API_BASE_URL}/auth/verify-otp`, { email, otp });
     return response.data;
   } catch (error) {
     throw error.response ? error.response.data : 'Error verifying OTP';
@@ -152,7 +152,7 @@ export const verifyOtp = async (email, otp) => {
 
 export const resendOtp = async (email) => {
   try {
-    const response = await axios.post(`${API_BASE_URL}/resend-otp`, { email });
+    const response = await axios.post(`${API_BASE_URL}/auth/resend-otp`, { email });
     return response.data;
   } catch (error) {
     throw error.response ? error.response.data : 'Error resending OTP';
@@ -161,7 +161,7 @@ export const resendOtp = async (email) => {
 
 export const sendResetPasswordEmail = async (email) => {
   try {
-    const response = await axios.post(`${API_BASE_URL}/send-otp`, { email });
+    const response = await axios.post(`${API_BASE_URL}/auth/send-otp`, { email });
     return response.data;
   } catch (error) {
     throw error.response ? error.response.data : 'Error sending OTP';
@@ -170,7 +170,7 @@ export const sendResetPasswordEmail = async (email) => {
 
 export const resetPassword = async (email, newPassword, confirmPassword) => {
   try {
-    const response = await axios.post(`${API_BASE_URL}/resetpassword`, {
+    const response = await axios.post(`${API_BASE_URL}/auth/resetpassword`, {
       email,
       newPassword,
       confirmPassword,
@@ -183,7 +183,7 @@ export const resetPassword = async (email, newPassword, confirmPassword) => {
 
 export const signIn = async (email, password) => {
   try {
-    const response = await axios.post(`${API_BASE_URL}/signin`, { email, password });
+    const response = await axios.post(`${API_BASE_URL}/auth/signin`, { email, password });
     return response.data;
   } catch (error) {
     throw error.response ? error.response.data : 'Error signing in';
@@ -192,7 +192,7 @@ export const signIn = async (email, password) => {
 
 export const signUp = async (name, email, password) => {
   try {
-    const response = await axios.post(`${API_BASE_URL}/signup`, { name, email, password });
+    const response = await axios.post(`${API_BASE_URL}/auth/signup`, { name, email, password });
     return response.data;
   } catch (error) {
     throw error.response ? error.response.data : 'Error signing up';
@@ -202,7 +202,7 @@ export const signUp = async (name, email, password) => {
 export const submitPersonalInfo = async (personalInfo) => {
   try {
     const token = await AsyncStorage.getItem('userToken');
-    const response = await axios.post(`${API_BASE_URL}/personal-information-setup`, personalInfo, {
+    const response = await axios.post(`${API_BASE_URL}/users/personal-information-setup`, personalInfo, {
       headers: {
         'x-auth-token': token
       }

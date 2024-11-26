@@ -36,7 +36,7 @@ const CreatePlan = ({ navigation }) => {
   const fetchAvailableStudents = async () => {
     try {
       const token = await AsyncStorage.getItem('userToken');
-      const response = await axios.get(`${API_BASE_URL}/pro-users`, {
+      const response = await axios.get(`${API_BASE_URL}/pt-plans/pro-users`, {
         headers: { 'x-auth-token': token }
       });
       setAvailableStudents(response.data);

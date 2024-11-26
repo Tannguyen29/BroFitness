@@ -28,12 +28,10 @@ const PaymentMethodScreen = ({ route, navigation }) => {
 
       const requestData = {
         amount: plan.totalPrice,
-        duration: plan.duration,
-        orderInfo: `Premium Plan ${plan.duration} ${plan.label}`,
-        planId: plan.id
+        duration: plan.duration
       };
 
-      const response = await axios.post(`${API_BASE_URL}/create-payment`, requestData, {
+      const response = await axios.post(`${API_BASE_URL}/payment/create-payment`, requestData, {
         headers: { 
           'x-auth-token': token,
           'Content-Type': 'application/json'
