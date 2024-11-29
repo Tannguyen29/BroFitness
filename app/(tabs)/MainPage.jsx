@@ -21,6 +21,7 @@ import axios from 'axios';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { API_BASE_URL } from '@env';
 import { getAvatarSource } from '../../utils/avatarHelper';
+import NotificationModal from '../modals/NotificationModal';
 
 const { width: screenWidth } = Dimensions.get('window');
 const itemWidth = screenWidth * 0.95;
@@ -36,6 +37,8 @@ const MainPage = () => {
   const flatListRef = useRef(null);
   const [plans, setPlans] = useState([]);
   const navigation = useNavigation();
+  const [isNotificationModalVisible, setIsNotificationModalVisible] = useState(false);
+
   const handleExploreAllPlans = () => {
     navigation.navigate('AllPlans'); 
   };
@@ -170,17 +173,21 @@ const MainPage = () => {
     </TouchableOpacity>
   );
 
+  const handleNotificationPress = () => {
+    setIsNotificationModalVisible(true);
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollViewContainer}>
         <View style={styles.headerContainer}>
           <View style={styles.avatarText}>
-          <Avatar
-            size={42}
-            rounded
-            source={userData.avatarUrl ? { uri: userData.avatarUrl } : getAvatarSource(userData)}
-            containerStyle={styles.avatarContainer}
-          />
+            <Avatar
+              size={42}
+              rounded
+              source={userData.avatarUrl ? { uri: userData.avatarUrl } : getAvatarSource(userData)}
+              containerStyle={styles.avatarContainer}
+            />
             <View>
               <Text style={styles.aText}>Welcome back</Text>
               <Text style={[styles.aText, { fontSize: 22, fontWeight: "600" }]}>
@@ -188,6 +195,16 @@ const MainPage = () => {
               </Text>
             </View>
           </View>
+          
+          <TouchableOpacity 
+            style={styles.notificationButton}
+            
+          >
+            <Notification size={24} color="#FFF" variant="Linear"/>
+            {userData.hasUnreadNotification && (
+              <View style={styles.notificationBadge} />
+            )}
+          </TouchableOpacity>
         </View>
         <View style={styles.bannerContainer}>
           <FlatList
@@ -294,6 +311,10 @@ const MainPage = () => {
         </View>
       </ScrollView>
       <StatusBar barStyle="light-content" backgroundColor="#1c1c1e" />
+      <NotificationModal 
+        visible={isNotificationModalVisible}
+        onClose={() => setIsNotificationModalVisible(false)}
+      />
     </SafeAreaView>
   );
 };
@@ -515,6 +536,19 @@ const styles = StyleSheet.create({
   },
   workoutArrow: {
     color: 'gray',
+  },
+  notificationButton: {
+    padding: 8,
+    position: 'relative',
+  },
+  notificationBadge: {
+    position: 'absolute',
+    right: 6,
+    top: 6,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#FD6300',
   },
   });
 

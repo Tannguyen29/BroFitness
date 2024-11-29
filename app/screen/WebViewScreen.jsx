@@ -1,14 +1,21 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { WebView } from 'react-native-webview';
 import { View, ActivityIndicator, Linking, Platform, Alert, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
 import { API_BASE_URL } from '@env';
+import { getUserInfo } from '../../config/api';
 
 const WebViewScreen = ({ route, navigation }) => {
   const { url } = route.params;
   const [isLoading, setIsLoading] = useState(true);
+
+  // Log URL thanh toán ban đầu
+  useEffect(() => {
+    console.log('\n=== PAYMENT URL ===');
+    console.log('Payment URL from VNPAY:', url);
+  }, [url]);
 
   const handleShouldStartLoadWithRequest = (request) => {
     console.log('Handling URL:', request.url); // Debug log
@@ -96,85 +103,121 @@ const WebViewScreen = ({ route, navigation }) => {
     return true;
   };
   const handleNavigationStateChange = async (navState) => {
-    console.log('Current URL:', navState.url);
+    const currentUrl = navState.url;
+    
+    // Log mỗi URL được load
+    console.log('\n=== URL CHANGED ===');
+    console.log('Current URL:', currentUrl);
 
-    // Kiểm tra URL return từ VNPay
-    if (navState.url.includes('vnp_ResponseCode')) {
-        try {
-            const urlObj = new URL(navState.url);
-            const vnp_ResponseCode = urlObj.searchParams.get('vnp_ResponseCode');
-            const vnp_OrderInfo = urlObj.searchParams.get('vnp_OrderInfo');
-            const vnp_Amount = urlObj.searchParams.get('vnp_Amount');
-            const vnp_BankCode = urlObj.searchParams.get('vnp_BankCode');
-            const vnp_PayDate = urlObj.searchParams.get('vnp_PayDate');
+    // Kiểm tra URL return
+    if (currentUrl.includes('vnp_ResponseCode')) {
+      console.log('\n=== RETURN URL ===');
+      console.log('Return URL with payment result:', currentUrl);
+      
+      try {
+        const decodedUrl = decodeURIComponent(currentUrl);
+        const searchParams = new URLSearchParams(decodedUrl.split('?')[1]);
+        
+        const vnp_ResponseCode = searchParams.get('vnp_ResponseCode');
+        const vnp_OrderInfo = searchParams.get('vnp_OrderInfo');
+        
+        console.log('Payment Response:', {
+          responseCode: vnp_ResponseCode,
+          orderInfo: vnp_OrderInfo
+        });
 
-            console.log('VNPay Response:', {
-                responseCode: vnp_ResponseCode,
-                orderInfo: vnp_OrderInfo,
-                amount: vnp_Amount,
-                bankCode: vnp_BankCode,
-                payDate: vnp_PayDate
-            });
+        if (vnp_ResponseCode === '00') {
+          const token = await AsyncStorage.getItem('userToken');
+          if (token) {
+            try {
+              console.log('Sending request with data:', { orderInfo: vnp_OrderInfo });
+              const response = await axios.post(
+                `${API_BASE_URL}/payment/update-user-role-and-pt`,
+                { orderInfo: vnp_OrderInfo },
+                { headers: { 'x-auth-token': token } }
+              );
+              console.log('Response from server:', response.data);
 
-            if (vnp_ResponseCode === '00') {
-                const token = await AsyncStorage.getItem('userToken');
-                if (token) {
-                    try {
-                        // Đợi 2 giây trước khi gửi request cập nhật
-                        await new Promise(resolve => setTimeout(resolve, 2000));
-                        
-                        await axios.post(`${API_BASE_URL}/payment/update-user-role`, {
-                            orderInfo: vnp_OrderInfo,
-                            amount: vnp_Amount,
-                            bankCode: vnp_BankCode,
-                            payDate: vnp_PayDate
-                        }, {
-                            headers: {
-                                'x-auth-token': token
-                            }
-                        });
-
-                        navigation.replace('PaymentResult', {
-                            status: 'success',
-                            message: 'Thanh toán thành công! Bạn đã được nâng cấp lên tài khoản Premium.'
-                        });
-                    } catch (error) {
-                        console.error('Error updating user info:', error);
-                        navigation.replace('PaymentResult', {
-                            status: 'error',
-                            message: 'Có lỗi xảy ra khi cập nhật thông tin người dùng.'
-                        });
+              navigation.reset({
+                index: 0,
+                routes: [
+                  {
+                    name: 'PaymentResult',
+                    params: {
+                      status: 'success',
+                      message: 'Thanh toán thành công!',
+                      orderInfo: vnp_OrderInfo,
+                      userData: response.data.user
                     }
-                }
-            } else {
-                // Map mã lỗi từ VNPay
-                let errorMessage = 'Thanh toán không thành công.';
-                switch(vnp_ResponseCode) {
-                    case '07':
-                        errorMessage = 'Trừ tiền thành công. Giao dịch bị nghi ngờ (liên quan tới lừa đảo, giao dịch bất thường).';
-                        break;
-                    case '09':
-                        errorMessage = 'Giao dịch không thành công do: Thẻ/Tài khoản của khách hàng chưa đăng ký dịch vụ InternetBanking tại ngân hàng.';
-                        break;
-                    case '10':
-                        errorMessage = 'Giao dịch không thành công do: Khách hàng xác thực thông tin thẻ/tài khoản không đúng quá 3 lần.';
-                        break;
-                    default:
-                        errorMessage = 'Thanh toán không thành công. Vui lòng thử lại.';
-                }
-                
-                navigation.replace('PaymentResult', {
-                    status: 'error',
-                    message: errorMessage
-                });
+                  }
+                ]
+              });
+            } catch (error) {
+              console.error('Full error details:', {
+                message: error.message,
+                response: error.response?.data,
+                status: error.response?.status
+              });
+              navigation.reset({
+                index: 0,
+                routes: [
+                  {
+                    name: 'PaymentResult',
+                    params: {
+                      status: 'error',
+                      message: 'Không thể cập nhật thông tin người dùng. Vui lòng liên hệ hỗ trợ.'
+                    }
+                  }
+                ]
+              });
             }
-        } catch (error) {
-            console.error('Error handling payment result:', error);
-            navigation.replace('PaymentResult', {
+          }
+        } else {
+          // Xử lý lỗi và chuyển hướng
+          let errorMessage = 'Thanh toán không thành công.';
+          // Map mã lỗi từ VNPay
+          switch(vnp_ResponseCode) {
+            case '07':
+              errorMessage = 'Trừ tiền thành công. Giao dịch bị nghi ngờ (liên quan tới lừa đảo, giao dịch bất thường).';
+              break;
+            case '09':
+              errorMessage = 'Giao dịch không thành công do: Thẻ/Tài khoản của khách hàng chưa đăng ký dịch vụ InternetBanking tại ngân hàng.';
+              break;
+            case '10':
+              errorMessage = 'Giao dịch không thành công do: Khách hàng xác thực thông tin thẻ/tài khoản không đúng quá 3 lần.';
+              break;
+            default:
+              errorMessage = 'Thanh toán không thành công. Vui lòng thử lại.';
+          }
+          
+          navigation.reset({
+            index: 0,
+            routes: [
+              {
+                name: 'PaymentResult',
+                params: {
+                  status: 'error',
+                  message: errorMessage
+                }
+              }
+            ]
+          });
+        }
+      } catch (error) {
+        console.error('Error handling return URL:', error);
+        navigation.reset({
+          index: 0,
+          routes: [
+            {
+              name: 'PaymentResult',
+              params: {
                 status: 'error',
                 message: 'Đã xảy ra lỗi khi xử lý thanh toán.'
-            });
-        }
+              }
+            }
+          ]
+        });
+      }
     }
   };
 
