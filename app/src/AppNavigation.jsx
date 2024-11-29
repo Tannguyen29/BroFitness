@@ -34,7 +34,8 @@ import EditPlan from '../screen/EditPlan';
 import PTPlansOverview from '../../components/PTPlansOverview';
 import PTPlansDetail from '../(tabs)/PTPlansDetail';
 import { API_BASE_URL } from '@env';
-
+import NotificationModal from '../modals/NotificationModal';
+import MainPage from '../(tabs)/MainPage';
 const Stack = createNativeStackNavigator();
 
 const PlanOverviewScreen = ({ route, navigation }) => {
@@ -102,6 +103,8 @@ const AppNavigation = ({ initialRoute }) => {
         <Stack.Screen name="EditPlan" component={EditPlan} options={{ headerShown: false }} />
         <Stack.Screen name="PTPlansOverview" component={PTPlansOverview} options={{ headerShown: false }} />
         <Stack.Screen name="PTPlansDetail" component={PTPlansDetail} options={{ headerShown: false }} />
+        <Stack.Screen name="NotificationModal" component={NotificationModal} options={{headerShown: false}}/>
+        <Stack.Screen name="MainPage" component={MainPage} options={{ headerShown: false }} />
       </Stack.Navigator>
     </NavigationContainer>
   );
