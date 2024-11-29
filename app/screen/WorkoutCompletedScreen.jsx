@@ -50,6 +50,7 @@ const WorkoutCompletedScreen = ({ route, navigation }) => {
       progress.lastUnlockTime = new Date().toISOString();
       
       const workoutData = {
+        completedDay: day,
         date: new Date().toISOString(),
         duration: totalTime,
         calories: calories,
@@ -67,8 +68,10 @@ const WorkoutCompletedScreen = ({ route, navigation }) => {
 
       EventRegister.emit('workoutCompleted', {
         planId: planId,
-        completedDays: progress.completedDays,
-        workoutData: workoutData
+        workoutData: {
+          completedDay: day,
+          ...workoutData
+        }
       });
 
     } catch (error) {

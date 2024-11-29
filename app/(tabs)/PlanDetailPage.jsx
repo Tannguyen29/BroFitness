@@ -41,7 +41,7 @@ const PlanDetailPage = ({ route }) => {
     const details = {};
     for (let exercise of exercises) {
       try {
-        const response = await axios.get(`${API_BASE_URL}/exercise-details/${exercise.name}`);
+        const response = await axios.get(`${API_BASE_URL}/exercises/details/${exercise.name}`);
         details[exercise.name] = response.data;
       } catch (error) {
         console.error(`Error fetching details for ${exercise.name}:`, error);

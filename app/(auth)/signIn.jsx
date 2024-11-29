@@ -79,7 +79,7 @@ const SignIn = ({ navigation }) => {
 
   const handleSignIn = async () => {
     try {
-      const response = await axios.post(`${API_BASE_URL}/signin`, { email, password });
+      const response = await axios.post(`${API_BASE_URL}/auth/signin`, { email, password });
       const { token, name, personalInfoCompleted } = response.data;
   
       await saveUserInfo(token, name || email, personalInfoCompleted);

@@ -278,7 +278,7 @@ const PersonalInformationSetup = ({ navigation }) => {
       const token = await AsyncStorage.getItem("userToken");
       const calorieGoal = Math.round(calculateCalorieGoal());
       const response = await axios.post(
-        `${API_BASE_URL}/personal-information-setup`,
+        `${API_BASE_URL}/users/personal-information-setup`,
         {
           gender,
           age,
