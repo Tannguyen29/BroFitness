@@ -6,12 +6,15 @@ import {
   TouchableOpacity,
   ScrollView,
   StyleSheet,
-  Alert
+  Alert,
+  Modal
 } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_BASE_URL } from '@env';
+import { FontAwesomeIcon } from '@fortawesome/react-native-fontawesome';
+import { faMagnifyingGlass } from '@fortawesome/free-solid-svg-icons';
 
 const CreatePlan = ({ navigation }) => {
   const [title, setTitle] = useState('');
@@ -27,6 +30,8 @@ const CreatePlan = ({ navigation }) => {
   const [currentDay, setCurrentDay] = useState(1);
   const [exercises, setExercises] = useState([]);
   const [availableExercises, setAvailableExercises] = useState([]);
+  const [selectedStudent, setSelectedStudent] = useState(null);
+  const [showStudentModal, setShowStudentModal] = useState(false);
 
   useEffect(() => {
     fetchAvailableStudents();
@@ -92,29 +97,112 @@ const CreatePlan = ({ navigation }) => {
     }
   };
 
+  const handleViewStudentInfo = async (student) => {
+    try {
+      const token = await AsyncStorage.getItem('userToken');
+      const response = await axios.get(
+        `${API_BASE_URL}/pt-plans/student/${student._id}`,
+        { headers: { 'x-auth-token': token } }
+      );
+      setSelectedStudent(response.data);
+      setShowStudentModal(true);
+    } catch (error) {
+      console.error('Error fetching student details:', error);
+      Alert.alert('Error', 'Failed to load student details');
+    }
+  };
+
+  const renderStudentInfoModal = () => (
+    <Modal
+      visible={showStudentModal}
+      transparent
+      animationType="slide"
+      onRequestClose={() => setShowStudentModal(false)}
+    >
+      <View style={styles.modalContainer}>
+        <View style={styles.modalContent}>
+          <View style={styles.modalHeader}>
+            <Text style={styles.modalTitle}>Student Information</Text>
+            <TouchableOpacity 
+              style={styles.closeModalButton}
+              onPress={() => setShowStudentModal(false)}
+            >
+              <Text style={styles.closeModalText}>Close</Text>
+            </TouchableOpacity>
+          </View>
+
+          {selectedStudent && (
+            <ScrollView style={styles.modalScroll}>
+              <Text style={styles.studentModalName}>{selectedStudent.name}</Text>
+              <Text style={styles.studentModalEmail}>{selectedStudent.email}</Text>
+
+              {selectedStudent.personalInfo && (
+                <View style={styles.infoContainer}>
+                  <InfoRow label="Gender" value={selectedStudent.personalInfo.gender} />
+                  <InfoRow label="Age" value={selectedStudent.personalInfo.age} />
+                  <InfoRow label="Height" value={`${selectedStudent.personalInfo.height} cm`} />
+                  <InfoRow label="Weight" value={`${selectedStudent.personalInfo.weight} kg`} />
+                  <InfoRow label="Goal Weight" value={`${selectedStudent.personalInfo.goalWeight} kg`} />
+                  <InfoRow label="Activity Level" value={selectedStudent.personalInfo.physicalActivityLevel} />
+                  <InfoRow label="Fitness Goal" value={selectedStudent.personalInfo.fitnessGoal} />
+                  <InfoRow label="Equipment" value={selectedStudent.personalInfo.equipment} />
+                  <InfoRow label="Experience Level" value={selectedStudent.personalInfo.experienceLevel} />
+                </View>
+              )}
+            </ScrollView>
+          )}
+        </View>
+      </View>
+    </Modal>
+  );
+
   const renderStudentSelection = () => (
     <View style={styles.section}>
       <Text style={styles.sectionTitle}>Select Students</Text>
-      <ScrollView style={styles.selectionContainer}>
-        {availableStudents.map((student) => (
-          <TouchableOpacity
-            key={student._id}
-            style={[
-              styles.selectionItem,
-              selectedStudents.includes(student._id) && styles.selectedItem
-            ]}
-            onPress={() => {
-              if (selectedStudents.includes(student._id)) {
-                setSelectedStudents(selectedStudents.filter(id => id !== student._id));
-              } else {
-                setSelectedStudents([...selectedStudents, student._id]);
-              }
-            }}
-          >
-            <Text style={styles.selectionText}>{student.name}</Text>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
+      {availableStudents.length > 0 ? (
+        <ScrollView style={styles.selectionContainer}>
+          {availableStudents.map((student) => (
+            <TouchableOpacity
+              key={student._id}
+              style={[
+                styles.selectionItem,
+                selectedStudents.includes(student._id) && styles.selectedItem
+              ]}
+              onPress={() => {
+                if (selectedStudents.includes(student._id)) {
+                  setSelectedStudents(selectedStudents.filter(id => id !== student._id));
+                } else {
+                  setSelectedStudents([...selectedStudents, student._id]);
+                }
+              }}
+            >
+              <View style={styles.studentInfo}>
+                <Text style={styles.studentName}>{student.name}</Text>
+                <Text style={styles.studentEmail}>{student.email}</Text>
+                {student.personalInfo && (
+                  <Text style={styles.studentDetails}>
+                    Level: {student.personalInfo.experienceLevel} | 
+                    Goal: {student.personalInfo.fitnessGoal}
+                  </Text>
+                )}
+              </View>
+              <TouchableOpacity
+                style={styles.infoButton}
+                onPress={() => handleViewStudentInfo(student)}
+              >
+                <FontAwesomeIcon icon={faMagnifyingGlass} style={styles.infoIcon} />
+              </TouchableOpacity>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      ) : (
+        <View style={styles.emptyState}>
+          <Text style={styles.emptyStateText}>
+            No premium students assigned to you yet
+          </Text>
+        </View>
+      )}
+      {renderStudentInfoModal()}
     </View>
   );
 
@@ -370,6 +458,13 @@ const CreatePlan = ({ navigation }) => {
   );
 };
 
+const InfoRow = ({ label, value }) => (
+  <View style={styles.infoRow}>
+    <Text style={styles.infoLabel}>{label}:</Text>
+    <Text style={styles.infoValue}>{value}</Text>
+  </View>
+);
+
 const styles = StyleSheet.create({
 container: {
   flex: 1,
@@ -561,6 +656,108 @@ createButtonText: {
   color: 'white',
   fontSize: 16,
   fontWeight: 'bold',
+},
+studentInfo: {
+  flex: 1,
+},
+studentName: {
+  fontSize: 16,
+  color: 'white',
+  fontWeight: 'bold',
+},
+studentEmail: {
+  fontSize: 14,
+  color: '#8E8E93',
+  marginTop: 2,
+},
+studentDetails: {
+  fontSize: 12,
+  color: '#FD6300',
+  marginTop: 4,
+},
+emptyState: {
+  padding: 20,
+  alignItems: 'center',
+},
+emptyStateText: {
+  color: '#8E8E93',
+  fontSize: 16,
+  textAlign: 'center',
+},
+infoButton: {
+  padding: 8,
+},
+infoIcon: {
+  color: '#FD6300',
+  fontSize: 18,
+},
+modalContainer: {
+  flex: 1,
+  backgroundColor: 'rgba(0,0,0,0.5)',
+  justifyContent: 'center',
+  alignItems: 'center',
+},
+modalContent: {
+  backgroundColor: '#1A1A1A',
+  width: '90%',
+  maxHeight: '80%',
+  borderRadius: 12,
+  overflow: 'hidden',
+},
+modalHeader: {
+  flexDirection: 'row',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  padding: 16,
+  borderBottomWidth: 1,
+  borderBottomColor: '#333',
+},
+modalTitle: {
+  fontSize: 18,
+  fontWeight: 'bold',
+  color: 'white',
+},
+closeModalButton: {
+  padding: 8,
+},
+closeModalText: {
+  color: 'coral',
+  fontSize: 16,
+},
+modalScroll: {
+  padding: 16,
+},
+studentModalName: {
+  fontSize: 24,
+  fontWeight: 'bold',
+  color: 'white',
+  marginBottom: 4,
+},
+studentModalEmail: {
+  fontSize: 16,
+  color: '#888',
+  marginBottom: 16,
+},
+infoContainer: {
+  backgroundColor: '#2A2A2A',
+  borderRadius: 8,
+  padding: 16,
+},
+infoRow: {
+  flexDirection: 'row',
+  justifyContent: 'space-between',
+  paddingVertical: 8,
+  borderBottomWidth: 1,
+  borderBottomColor: '#333',
+},
+infoLabel: {
+  color: '#888',
+  fontSize: 16,
+},
+infoValue: {
+  color: 'white',
+  fontSize: 16,
+  fontWeight: '500',
 },
 });
 

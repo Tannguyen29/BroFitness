@@ -16,6 +16,7 @@ const PlanOverview = ({ plan, navigation, route }) => {
   const [isWorkoutLocked, setIsWorkoutLocked] = useState(false);
   const [userId, setUserId] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [timeRemaining, setTimeRemaining] = useState('');
 
   const getProgressKey = (userId) => {
     return `plan_progress_${userId}_${plan._id}`;
@@ -208,14 +209,48 @@ const PlanOverview = ({ plan, navigation, route }) => {
     const now = new Date();
     const lastWorkout = new Date(lastUnlockTime);
     
-    const isSameDay = 
-      lastWorkout.getDate() === now.getDate() &&
-      lastWorkout.getMonth() === now.getMonth() &&
-      lastWorkout.getFullYear() === now.getFullYear();
+    const nextDay = new Date(lastWorkout);
+    nextDay.setDate(nextDay.getDate() + 1);
+    nextDay.setHours(0, 0, 0, 0);
     
-    return !isSameDay && 
-           (currentDay <= plan.duration.weeks * plan.duration.daysPerWeek);
+    return now >= nextDay;
   };
+
+  const getTimeRemaining = () => {
+    if (!lastUnlockTime) return null;
+    
+    const now = new Date();
+    const lastWorkout = new Date(lastUnlockTime);
+    
+    const nextDay = new Date(lastWorkout);
+    nextDay.setDate(nextDay.getDate() + 1);
+    nextDay.setHours(0, 0, 0, 0);
+    
+    const timeRemaining = nextDay.getTime() - now.getTime();
+    if (timeRemaining <= 0) return null;
+    
+    const hours = Math.floor(timeRemaining / (60 * 60 * 1000));
+    const minutes = Math.floor((timeRemaining % (60 * 60 * 1000)) / (60 * 1000));
+    const seconds = Math.floor((timeRemaining % (60 * 1000)) / 1000);
+    
+    return `${hours}h ${minutes}m ${seconds}s until next workout`;
+  };
+
+  useEffect(() => {
+    if (!canStartWorkout() && lastUnlockTime) {
+      const timer = setInterval(() => {
+        const remaining = getTimeRemaining();
+        if (!remaining) {
+          clearInterval(timer);
+          loadProgress();
+        } else {
+          setTimeRemaining(remaining);
+        }
+      }, 1000);
+
+      return () => clearInterval(timer);
+    }
+  }, [lastUnlockTime]);
 
   const handleStartButtonPress = () => {
     if (isCompleted) {
@@ -304,20 +339,32 @@ const PlanOverview = ({ plan, navigation, route }) => {
   }, [lastUnlockTime]);
 
   const renderStartButton = (week) => {
-    const isDisabled = !canStartWorkout() || isWorkoutLocked;
+    const isCurrentWeek = Math.ceil(currentDay / daysPerWeek) === week;
+    if (!isCurrentWeek) return null;
+
+    const canStart = canStartWorkout();
+    
     return (
-      <TouchableOpacity 
-        style={[
-          styles.startButton, 
-          isDisabled && styles.disabledButton
-        ]}
-        onPress={() => handleDayPress(week, 1)}
-        disabled={isDisabled}
-      >
-        <Text style={styles.startButtonText}>
-          {week === Math.ceil(currentDay / daysPerWeek) ? 'START' : 'LOCKED'}
-        </Text>
-      </TouchableOpacity>
+      <View style={styles.startButtonContainer}>
+        {canStart ? (
+          <TouchableOpacity
+            style={styles.startButton}
+            onPress={handleStartButtonPress}
+          >
+            <Text style={styles.startButtonText}>START WORKOUT</Text>
+          </TouchableOpacity>
+        ) : (
+          <View style={styles.lockedButtonContainer}>
+            <TouchableOpacity
+              style={[styles.startButton, styles.disabledButton]}
+              disabled={true}
+            >
+              <Text style={styles.startButtonText}>LOCKED</Text>
+            </TouchableOpacity>
+            <Text style={styles.timeRemaining}>{timeRemaining}</Text>
+          </View>
+        )}
+      </View>
     );
   };
 
@@ -625,6 +672,18 @@ modalContainer: {
   loadingAnimation: {
     width: 200,
     height: 200,
+  },
+  startButtonContainer: {
+    marginTop: 10,
+  },
+  lockedButtonContainer: {
+    alignItems: 'center',
+  },
+  timeRemaining: {
+    color: '#FD6300',
+    fontSize: 14,
+    marginTop: 8,
+    textAlign: 'center',
   },
 });
 
