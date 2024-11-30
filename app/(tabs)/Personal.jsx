@@ -82,6 +82,22 @@ const PersonalTraining = ({ navigation }) => {
     navigation.navigate('PTPlansOverview', { selectedPlanId: plan._id });
   };
 
+  const renderScheduleItem = (schedule) => (
+    <View key={schedule._id} style={styles.scheduleItem}>
+      <View style={styles.scheduleInfo}>
+        <Text style={styles.scheduleDate}>
+          Date: {formatDate(schedule.date)}
+        </Text>
+        <Text style={styles.scheduleTime}>
+          Time: {schedule.startTime} - {schedule.endTime}
+        </Text>
+        <Text style={styles.trainerName}>
+          Trainer: {schedule.ptName}
+        </Text>
+      </View>
+    </View>
+  );
+
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -106,45 +122,7 @@ const PersonalTraining = ({ navigation }) => {
         {schedules.length === 0 ? (
           <Text style={styles.noDataText}>No scheduled sessions yet</Text>
         ) : (
-          schedules.map((schedule) => (
-            <View key={schedule._id} style={styles.scheduleItem}>
-              <View style={styles.scheduleInfo}>
-                <Text style={styles.scheduleDate}>
-                  Date: {formatDate(schedule.date)}
-                </Text>
-                <Text style={styles.scheduleTime}>
-                  Time: {schedule.startTime} - {schedule.endTime}
-                </Text>
-                <Text style={styles.trainerName}>
-                  Trainer: {schedule.ptName}
-                </Text>
-              </View>
-              {schedule.status === 'pending' && (
-                <View style={styles.actionButtons}>
-                  <TouchableOpacity
-                    style={[styles.button, styles.acceptButton]}
-                    onPress={() => handleScheduleResponse(schedule._id, 'accepted')}
-                  >
-                    <Text style={styles.buttonText}>Accept</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={[styles.button, styles.rejectButton]}
-                    onPress={() => handleScheduleResponse(schedule._id, 'rejected')}
-                  >
-                    <Text style={styles.buttonText}>Reject</Text>
-                  </TouchableOpacity>
-                </View>
-              )}
-              {schedule.status !== 'pending' && (
-                <Text style={[
-                  styles.status,
-                  schedule.status === 'accepted' ? styles.accepted : styles.rejected
-                ]}>
-                  {schedule.status.charAt(0).toUpperCase() + schedule.status.slice(1)}
-                </Text>
-              )}
-            </View>
-          ))
+          schedules.map(renderScheduleItem)
         )}
       </View>
 
@@ -287,6 +265,20 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#999999',
   },
+  statusText: {
+    fontSize: 14,
+    marginTop: 8,
+    fontWeight: '600',
+  },
+  pending: {
+    color: '#FFA500',
+  },
+  accepted: {
+    color: '#4CAF50',
+  },
+  rejected: {
+    color: '#F44336',
+  }
 });
 
 export default PersonalTraining;
