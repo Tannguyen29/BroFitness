@@ -64,9 +64,14 @@ const CalendarScreen = () => {
       const endOfWeek = new Date(startOfWeek);
       endOfWeek.setDate(endOfWeek.getDate() + 6);
 
-      const response = await axios.get(`${API_BASE_URL}/schedules/range/${startOfWeek.toISOString()}/${endOfWeek.toISOString()}`, {
-        headers: { 'x-auth-token': token }
-      });
+      const response = await axios.get(
+        `${API_BASE_URL}/schedules/range/${startOfWeek.toISOString()}/${endOfWeek.toISOString()}`,
+        {
+          headers: { 'x-auth-token': token }
+        }
+      );
+
+      console.log('Schedules response:', response.data);
 
       const schedulesByDay = groupSchedulesByDay(response.data);
       setWeekSchedules(schedulesByDay);
@@ -82,7 +87,10 @@ const CalendarScreen = () => {
       if (!grouped[date]) {
         grouped[date] = [];
       }
-      grouped[date].push(schedule);
+      grouped[date].push({
+        ...schedule,
+        studentName: schedule.studentId?.name || 'Unknown Student'
+      });
     });
     return grouped;
   };
@@ -124,32 +132,47 @@ const CalendarScreen = () => {
   
   const handleScheduleCreate = async () => {
     try {
+      const token = await AsyncStorage.getItem('userToken');
+      console.log('Token:', token);
+      
       if (!addScheduleDate) {
         alert('Please select a date');
         return;
       }
 
-      if (isStudentAlreadyScheduled(selectedStudent._id, addScheduleDate)) {
-        alert('This student already has a schedule for this day');
+      if (!selectedStudent) {
+        alert('Please select a student');
         return;
       }
 
-      const token = await AsyncStorage.getItem('userToken');
-      await axios.post(`${API_BASE_URL}/schedules`, {
-        studentId: selectedStudent._id,
-        date: addScheduleDate.toISOString(),
-        startTime: selectedTime,
-        endTime: new Date(new Date(`${addScheduleDate.toDateString()} ${selectedTime}`).getTime() + 60*60*1000).toLocaleTimeString()
-      }, {
-        headers: { 'x-auth-token': token }
-      });
+      const response = await axios.post(
+        `${API_BASE_URL}/schedules`,
+        {
+          studentId: selectedStudent._id,
+          date: addScheduleDate.toISOString(),
+          startTime: selectedTime,
+          endTime: new Date(new Date(`${addScheduleDate.toDateString()} ${selectedTime}`).getTime() + 60*60*1000).toLocaleTimeString()
+        },
+        {
+          headers: {
+            'x-auth-token': token,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+      
+      console.log('Schedule creation response:', response.data);
       
       setStudentModalVisible(false);
       setSelectedStudent(null);
       setAddScheduleDate(null);
       fetchWeekSchedules();
     } catch (error) {
-      console.error('Error creating schedule:', error);
+      console.error('Schedule creation error:', error.response?.data || error);
+      Alert.alert(
+        'Error',
+        error.response?.data?.message || 'Failed to create schedule'
+      );
     }
   };
   const renderWeekDays = () => {
@@ -202,7 +225,16 @@ const CalendarScreen = () => {
               ({schedules.length} sessions)
             </Text>
           </View>
-          <Text style={styles.scheduleLocation}>Cosmopolitan Mall</Text>
+          {schedules.map((schedule, idx) => (
+            <View key={idx} style={styles.scheduleDetails}>
+              <Text style={styles.scheduleTime}>
+                {schedule.startTime} - {schedule.endTime}
+              </Text>
+              <Text style={styles.studentName}>
+                Student: {schedule.studentName}
+              </Text>
+            </View>
+          ))}
         </TouchableOpacity>
       );
     });
@@ -224,7 +256,7 @@ const CalendarScreen = () => {
                   {schedule.startTime} - {schedule.endTime}
                 </Text>
                 <Text style={styles.studentNameText}>
-                  {schedule.studentId.name}
+                  Student: {schedule.studentName}
                 </Text>
               </View>
             ))}
@@ -605,6 +637,34 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
+  },
+  statusText: {
+    fontSize: 14,
+    marginTop: 4,
+  },
+  pending: {
+    color: '#FFA500',
+  },
+  accepted: {
+    color: '#4CAF50',
+  },
+  rejected: {
+    color: '#F44336',
+  },
+  scheduleDetails: {
+    marginTop: 8,
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: '#333',
+  },
+  scheduleTime: {
+    fontSize: 14,
+    color: '#FD6300',
+    marginBottom: 4,
+  },
+  studentName: {
+    fontSize: 14,
+    color: '#FFFFFF',
   },
 });
 
