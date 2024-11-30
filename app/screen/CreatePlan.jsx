@@ -162,27 +162,13 @@ const CreatePlan = ({ navigation }) => {
       {availableStudents.length > 0 ? (
         <ScrollView style={styles.selectionContainer}>
           {availableStudents.map((student) => (
-            <TouchableOpacity
-              key={student._id}
-              style={[
-                styles.selectionItem,
-                selectedStudents.includes(student._id) && styles.selectedItem
-              ]}
-              onPress={() => {
-                if (selectedStudents.includes(student._id)) {
-                  setSelectedStudents(selectedStudents.filter(id => id !== student._id));
-                } else {
-                  setSelectedStudents([...selectedStudents, student._id]);
-                }
-              }}
-            >
+            <View key={student._id} style={styles.selectionItem}>
               <View style={styles.studentInfo}>
                 <Text style={styles.studentName}>{student.name}</Text>
                 <Text style={styles.studentEmail}>{student.email}</Text>
                 {student.personalInfo && (
                   <Text style={styles.studentDetails}>
-                    Level: {student.personalInfo.experienceLevel} | 
-                    Goal: {student.personalInfo.fitnessGoal}
+                    Level: {student.personalInfo.experienceLevel} | Goal: {student.personalInfo.fitnessGoal}
                   </Text>
                 )}
               </View>
@@ -192,7 +178,7 @@ const CreatePlan = ({ navigation }) => {
               >
                 <FontAwesomeIcon icon={faMagnifyingGlass} style={styles.infoIcon} />
               </TouchableOpacity>
-            </TouchableOpacity>
+            </View>
           ))}
         </ScrollView>
       ) : (
@@ -657,6 +643,29 @@ createButtonText: {
   fontSize: 16,
   fontWeight: 'bold',
 },
+section: {
+  padding: 16,
+  borderBottomWidth: 1,
+  borderBottomColor: '#333',
+},
+sectionTitle: {
+  color: 'white',
+  fontSize: 18,
+  fontWeight: 'bold',
+  marginBottom: 16,
+},
+selectionContainer: {
+  maxHeight: 200,
+},
+selectionItem: {
+  padding: 12,
+  borderRadius: 8,
+  backgroundColor: '#1A1A1A',
+  marginBottom: 8,
+  flexDirection: 'row',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+},
 studentInfo: {
   flex: 1,
 },
@@ -674,6 +683,13 @@ studentDetails: {
   fontSize: 12,
   color: '#FD6300',
   marginTop: 4,
+},
+infoButton: {
+  padding: 8,
+},
+infoIcon: {
+  color: '#FD6300',
+  fontSize: 18,
 },
 emptyState: {
   padding: 20,

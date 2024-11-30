@@ -507,11 +507,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginBottom: 20,
   },
-  backButton: {
-    backgroundColor: '#FD6300',
-    padding: 12,
-    borderRadius: 8,
-  },
   backButtonText: {
     color: '#FFFFFF',
     fontSize: 16,

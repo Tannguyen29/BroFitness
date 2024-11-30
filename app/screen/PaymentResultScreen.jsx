@@ -153,7 +153,7 @@ const PaymentResultScreen = ({ navigation }) => {
             <Text style={styles.errorMessage}>{error || message}</Text>
             <TouchableOpacity 
                 style={[styles.button, styles.errorButton]}
-                onPress={() => navigation.navigate('BottomTab')}
+                onPress={() => navigation.navigate('BottomTabs')}
             >
                 <Text style={styles.buttonText}>Về trang chủ</Text>
             </TouchableOpacity>

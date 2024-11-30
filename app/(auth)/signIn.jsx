@@ -231,39 +231,11 @@ const SignIn = ({ navigation }) => {
             handlePress={handleSignIn}
           />
           {error && <Text className="text-red-500 mt-4">{error}</Text>}
-          <View className="flex-row items-center mt-12 w-4/5">
-            <View className="flex-1 h-px bg-gray-600" />
-            <Text className="text-gray-400 mx-2">Or sign In with</Text>
-            <View className="flex-1 h-px bg-gray-600" />
-          </View>
-          <View className="flex-row justify-around mt-6 w-4/5 mb-12">
-            <TouchableOpacity className="border border-white rounded-full px-8 py-2">
-              <Image
-                source={facebookLogo}
-                className="w-6 h-10"
-                resizeMode="contain"
-              />
-            </TouchableOpacity>
-            <TouchableOpacity className="border border-white rounded-full px-8 py-2">
-              <Image
-                source={googleLogo}
-                className="w-7 h-10"
-                resizeMode="contain"
-              />
-            </TouchableOpacity>
-            <TouchableOpacity className="border border-white rounded-full px-8 py-2">
-              <Image
-                source={appleLogo}
-                className="w-7 h-10"
-                resizeMode="contain"
-              />
-            </TouchableOpacity>
-          </View>
           <TouchableOpacity
             onPress={() => navigation.navigate("SignUp")}
             className="mt-4"
           >
-            <Text className="text-gray-400">
+            <Text className="text-gray-400 mt-[20px]">
               Haven't joined BroFitness?{" "}
               <Text className="text-orange-500">Sign up</Text>
             </Text>
